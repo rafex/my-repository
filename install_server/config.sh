@@ -23,6 +23,6 @@ echo "✅ Locale configurado a es_MX.UTF-8"
 # Configurar terminal
 echo "🎨 Configurando tipo de terminal a xterm-256color..."
 echo "export TERM=xterm-256color" | sudo tee /etc/profile.d/term.sh
-chmod +x /etc/profile.d/term.sh
+sudo chmod +x /etc/profile.d/term.sh
 
 echo "✅ Configuración del servidor completada."

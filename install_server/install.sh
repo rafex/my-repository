@@ -11,6 +11,7 @@ print_help() {
   echo "  --init, -i       Instala dependencias y configura NGINX sin SSL"
   echo "  --ssl, -s        Ejecuta Certbot y activa HTTPS si ya existe el certificado"
   echo "  --generate-indexes, -g  Genera índices APT (.deb) y YUM (.rpm)"
+  echo "  --firewall, -f         Configura UFW para permitir SSH, HTTP y HTTPS"
   echo "  --help, -h       Muestra esta ayuda"
   echo ""
   echo "Ejemplos:"
@@ -48,6 +49,14 @@ EOF
   sudo ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/repo
   sudo rm -f /etc/nginx/sites-enabled/default
   sudo systemctl restart nginx
+
+  echo "🛡️ Configurando firewall con UFW..."
+  sudo apt install -y ufw
+  sudo ufw allow OpenSSH
+  sudo ufw allow 80
+  sudo ufw allow 443
+  sudo ufw --force enable
+  echo "✅ Firewall activo y configurado (SSH, HTTP, HTTPS)."
 
   echo "✅ Repositorio accesible temporalmente en HTTP: http://repository.rafex.app/"
 }
@@ -109,6 +118,16 @@ generate_indexes() {
   fi
 }
 
+configure_firewall() {
+  echo "🛡️ Configurando firewall con UFW..."
+  sudo apt install -y ufw
+  sudo ufw allow OpenSSH
+  sudo ufw allow 80
+  sudo ufw allow 443
+  sudo ufw --force enable
+  echo "✅ Firewall activo y configurado (SSH, HTTP, HTTPS)."
+}
+
 case "$1" in
   --init|-i)
     init_server
@@ -118,6 +137,9 @@ case "$1" in
     ;;
   --generate-indexes|-g)
     generate_indexes
+    ;;
+  --firewall|-f)
+    configure_firewall
     ;;
   --help|-h|"")
     print_help
