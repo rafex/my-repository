@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e
+set -eu
 
 echo "🌐 Configurando locale del sistema a es_MX.UTF-8..."
 
@@ -13,10 +13,10 @@ sudo locale-gen
 sudo update-locale LANG=es_MX.utf8
 
 # Aplicar temporalmente para la sesión actual
-echo "export LANG=es_MX.UTF-8" | sudo tee /etc/profile.d/locale.sh
+echo "export LANG=es_MX.utf8" | sudo tee /etc/profile.d/locale.sh
 echo "export LANGUAGE=es_MX:es" | sudo tee -a /etc/profile.d/locale.sh
 echo "export LC_ALL=es_MX.UTF-8" | sudo tee -a /etc/profile.d/locale.sh
-chmod +x /etc/profile.d/locale.sh
+sudo chmod +x /etc/profile.d/locale.sh
 
 echo "✅ Locale configurado a es_MX.UTF-8"
 
