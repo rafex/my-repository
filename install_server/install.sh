@@ -10,11 +10,13 @@ print_help() {
   echo "Opciones:"
   echo "  --init, -i       Instala dependencias y configura NGINX sin SSL"
   echo "  --ssl, -s        Ejecuta Certbot y activa HTTPS si ya existe el certificado"
+  echo "  --generate-indexes, -g  Genera índices APT (.deb) y YUM (.rpm)"
   echo "  --help, -h       Muestra esta ayuda"
   echo ""
   echo "Ejemplos:"
   echo "  $0 --init        Inicializa el servidor (instala nginx, estructura, config HTTP)"
   echo "  $0 --ssl         Activa HTTPS en NGINX si Certbot ya generó los certificados"
+  echo "  $0 --generate-indexes  Genera los índices para repositorios APT y YUM"
 }
 
 init_server() {
@@ -86,12 +88,36 @@ EOF
   fi
 }
 
+generate_indexes() {
+  echo "📦 Generando índice APT (.deb)..."
+  DEB_DIR="/srv/repo/debian/dists/stable/main/binary-amd64"
+  if [ -d "$DEB_DIR" ]; then
+    cd "$DEB_DIR"
+    dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
+    echo "✅ Packages.gz generado en $DEB_DIR"
+  else
+    echo "⚠️  Directorio APT no encontrado: $DEB_DIR"
+  fi
+
+  echo "📦 Generando índice YUM (.rpm)..."
+  RPM_DIR="/srv/repo/redhat"
+  if [ -d "$RPM_DIR" ]; then
+    createrepo "$RPM_DIR"
+    echo "✅ repodata generado en $RPM_DIR"
+  else
+    echo "⚠️  Directorio RPM no encontrado: $RPM_DIR"
+  fi
+}
+
 case "$1" in
   --init|-i)
     init_server
     ;;
   --ssl|-s)
     enable_ssl
+    ;;
+  --generate-indexes|-g)
+    generate_indexes
     ;;
   --help|-h|"")
     print_help
