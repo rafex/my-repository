@@ -3,16 +3,14 @@ set -e
 
 echo "🌐 Configurando locale del sistema a es_MX.UTF-8..."
 
-# Generar el locale si no existe
-if ! grep -q "es_MX.UTF-8" /etc/locale.gen; then
-  echo "es_MX.UTF-8 UTF-8" | sudo tee -a /etc/locale.gen
-fi
+# Descomentar es_MX.UTF-8 si está comentado
+sudo sed -i 's/^# *\(es_MX.UTF-8 UTF-8\)/\1/' /etc/locale.gen
 
-# Ejecutar locale-gen
+# Generar locales
 sudo locale-gen
 
-# Establecer locale por defecto
-sudo update-locale LANG=es_MX.UTF-8
+# Establecer locale por defecto en minúsculas (como lo espera update-locale)
+sudo update-locale LANG=es_MX.utf8
 
 # Aplicar temporalmente para la sesión actual
 echo "export LANG=es_MX.UTF-8" | sudo tee /etc/profile.d/locale.sh
