@@ -33,8 +33,8 @@ jobs:
           mkdir -p deb_pkg/DEBIAN
           cp packaging/deb/amd64/control deb_pkg/DEBIAN/control
           dpkg-deb --build deb_pkg curp-verifier-amd64.deb
-          ls -lh curp-verifier-amd64.deb
           ls -lah
+          mv curp-verifier-amd64.deb $GITHUB_WORKSPACE/
 
       - name: 🚀 Upload to server using scp
         run: |
@@ -85,8 +85,8 @@ jobs:
           mkdir -p deb_pkg/DEBIAN
           cp packaging/deb/arm64/control deb_pkg/DEBIAN/control
           dpkg-deb --build deb_pkg curp-verifier-arm64.deb
-          ls -lh curp-verifier-arm64.deb
           ls -lah
+          mv curp-verifier-arm64.deb $GITHUB_WORKSPACE/
 
       - name: 🚀 Upload ARM64 package to server using scp
         run: |
