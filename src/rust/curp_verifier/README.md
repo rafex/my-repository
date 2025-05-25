@@ -1,5 +1,3 @@
-
-
 # curp_verifier
 
 Este proyecto implementa en Rust el algoritmo de verificación del **dígito verificador de la CURP**, conforme a lo estipulado en el [Instructivo Normativo para la Asignación de la Clave Única de Registro de Población](https://curp.readthedocs.io/es/latest/instructivo/verificacion.html) y publicado oficialmente en el Diario Oficial de la Federación (DOF) el 18 de octubre de 2021.
@@ -62,3 +60,5 @@ Este repositorio incluye pruebas para validar CURPs correctamente y garantiza qu
 Este software se proporciona con fines prácticos y educativos únicamente. Su implementación del algoritmo de validación del dígito verificador de la CURP se basa en fuentes oficiales públicas, pero **no sustituye en ningún momento la funcionalidad ni validez del portal oficial del gobierno mexicano** disponible en: [https://www.gob.mx/curp/](https://www.gob.mx/curp/)
 
 Para obtener tu CURP oficial o validar registros con validez jurídica, consulta directamente el sitio oficial.
+
+Nota: Aunque la estructura parece correcta, solo RENAPO puede confirmar su validez oficial.
