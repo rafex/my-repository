@@ -1,6 +1,7 @@
 # Nombre del crate
 CRATE=curp_verifier
-TARGET=target/release/lib$(CRATE).dylib
+EXT=$(shell uname | grep -q Darwin && echo dylib || echo so)
+TARGET=target/release/lib$(CRATE).$(EXT)
 HEADER=include/$(CRATE).h
 
 .PHONY: all build clean cbindgen install install-tools
