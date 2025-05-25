@@ -6,7 +6,7 @@ SSH_DIR="/home/$USER/.ssh"
 AUTHORIZED_KEYS="$SSH_DIR/authorized_keys"
 
 echo "👤 Creando usuario $USER..."
-sudo adduser --disabled-password --gecos "" --shell /usr/sbin/nologin "$USER"
+sudo adduser --disabled-password --gecos "" --shell /usr/bin/sh "$USER"
 
 echo "📁 Creando carpeta SSH..."
 sudo mkdir -p "$SSH_DIR"

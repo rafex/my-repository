@@ -32,6 +32,9 @@ init_server() {
   sudo mkdir -p /srv/repo/redhat
   sudo chown -R "$USER:www-data" /srv/repo
 
+  sudo chmod -R 775 /srv/repo/debian/dists/stable/main/binary-amd64
+  sudo chmod -R 775 /srv/repo/debian/dists/stable/main/binary-arm64
+
   echo "📝 Configurando NGINX (HTTP temporal)..."
   sudo tee "$NGINX_CONF" > /dev/null <<EOF
 server {

@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
       - "src/rust/curp_verifier/**"
-      - ".github/workflows/package-deploy.yml"
+      - ".github/workflows/curp-package-deploy.yml"
   workflow_dispatch:
 
 jobs:
