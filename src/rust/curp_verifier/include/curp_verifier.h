@@ -7,6 +7,14 @@
 extern "C" {
 #endif
 
+
+/* Generated with cbindgen:0.29.0 */
+
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+
 bool verify_curp(const char *curp);
 
 #ifdef __cplusplus
