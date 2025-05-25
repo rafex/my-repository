@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build-and-deploy-amd64:
     runs-on: ubuntu-latest
 
     steps:
@@ -54,4 +54,64 @@ jobs:
           key: ${{ secrets.RAFEX_SERVER_SSH_KEY }}
           script: |
             cd /srv/repo/debian/dists/stable/main/binary-amd64
+            dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
+
+  build-and-deploy-arm64:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout repo
+        uses: actions/checkout@v3
+
+      - name: 🦀 Install Rust + ARM target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu
+
+      - name: 🧰 Install cross-compiling tools
+        run: sudo apt update && sudo apt install -y dpkg-dev gcc-aarch64-linux-gnu
+
+      - name: 🛠 Build Rust library for ARM64
+        working-directory: src/rust/curp_verifier
+        run: |
+          cargo build --release --target aarch64-unknown-linux-gnu
+          mkdir -p target/release
+          cp target/aarch64-unknown-linux-gnu/release/libcurp_verifier.* target/release/
+
+      - name: 📥 Install cbindgen
+        run: cargo install cbindgen
+
+      - name: 🧾 Generate header
+        working-directory: src/rust/curp_verifier
+        run: make cbindgen
+
+      - name: 📦 Build .deb package for ARM64
+        working-directory: src/rust/curp_verifier
+        run: |
+          mkdir -p deb_pkg/usr/lib
+          mkdir -p deb_pkg/usr/include
+          cp target/release/libcurp_verifier.* deb_pkg/usr/lib/
+          cp include/curp_verifier.h deb_pkg/usr/include/
+          mkdir -p deb_pkg/DEBIAN
+          cp packaging/deb/arm64/control deb_pkg/DEBIAN/control
+          dpkg-deb --build deb_pkg curp-verifier-arm64.deb
+          ls -lah
+
+      - name: 🚀 Upload ARM64 package to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.RAFEX_SERVER_HOST }}
+          username: ${{ secrets.RAFEX_SERVER_USER }}
+          key: ${{ secrets.RAFEX_SERVER_SSH_KEY }}
+          source: "src/rust/curp_verifier/curp-verifier-arm64.deb"
+          target: "/srv/repo/debian/dists/stable/main/binary-arm64"
+
+      - name: 🔄 Regenerate Packages.gz for ARM64
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.RAFEX_SERVER_HOST }}
+          username: ${{ secrets.RAFEX_SERVER_USER }}
+          key: ${{ secrets.RAFEX_SERVER_SSH_KEY }}
+          script: |
+            cd /srv/repo/debian/dists/stable/main/binary-arm64
             dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
