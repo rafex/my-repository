@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::ffi::{CStr, CString};
+use std::ffi::CStr;
 use std::os::raw::c_char;
 
 fn obtener_valores_curp() -> HashMap<char, u32> {
@@ -52,7 +52,7 @@ fn verificar_curp(curp: &str) -> bool {
 }
 
 #[no_mangle]
-pub extern "C" fn verify_curp(curp: *const c_char) -> bool {
+pub unsafe extern "C" fn verify_curp(curp: *const c_char) -> bool {
     if curp.is_null() {
         return false;
     }
