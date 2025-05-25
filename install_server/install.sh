@@ -50,14 +50,6 @@ EOF
   sudo rm -f /etc/nginx/sites-enabled/default
   sudo systemctl restart nginx
 
-  echo "🛡️ Configurando firewall con UFW..."
-  sudo apt install -y ufw
-  sudo ufw allow OpenSSH
-  sudo ufw allow 80
-  sudo ufw allow 443
-  sudo ufw --force enable
-  echo "✅ Firewall activo y configurado (SSH, HTTP, HTTPS)."
-
   echo "✅ Repositorio accesible temporalmente en HTTP: http://repository.rafex.app/"
 }
 
