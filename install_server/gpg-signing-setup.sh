@@ -47,7 +47,7 @@ EOF
 
     echo "📤 Exportando clave pública a $KEYFILE..."
     gpg --armor --export "$KEYID" > "$KEYFILE"
-    ;;&
+    ;;
 
   --sign)
     [ -f "$KEYID_FILE" ] || { echo "❌ No se encontró $KEYID_FILE. Ejecuta --create-sign primero."; exit 1; }
@@ -59,7 +59,7 @@ EOF
         dpkg-sig --sign builder "$DEB"
       done
     done
-    ;;&
+    ;;
 
   --reindex)
     echo "📦 Regenerando índice Packages.gz..."

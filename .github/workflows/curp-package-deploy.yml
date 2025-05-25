@@ -58,10 +58,8 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
           chmod 600 id_github_gactions
-          ssh -i id_github_gactions -o StrictHostKeyChecking=no ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }} <<'EOF'
-            apt-ftparchive packages /srv/repo/debian/dists/stable/main/binary-amd64 > /srv/repo/debian/dists/stable/main/binary-amd64/Packages
-            gzip -9c /srv/repo/debian/dists/stable/main/binary-amd64/Packages > /srv/repo/debian/dists/stable/main/binary-amd64/Packages.gz
-            EOF
+          ssh -i id_github_gactions -o StrictHostKeyChecking=no ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }} \
+            "bash -c 'apt-ftparchive packages /srv/repo/debian/dists/stable/main/binary-amd64 > /srv/repo/debian/dists/stable/main/binary-amd64/Packages && gzip -9c /srv/repo/debian/dists/stable/main/binary-amd64/Packages > /srv/repo/debian/dists/stable/main/binary-amd64/Packages.gz'"
 
   build-and-deploy-arm64:
     runs-on: ubuntu-latest
@@ -79,7 +77,7 @@ jobs:
         run: sudo apt update && sudo apt install -y dpkg-dev gcc-aarch64-linux-gnu
 
       - name: 🛠 Build Rust library for ARM64
-        working-directory: src/rust/curp_verifier
+        working-directory: src/rust/curverifier
         run: |
           cargo build --release --target aarch64-unknown-linux-gnu
           mkdir -p target/release
@@ -124,7 +122,5 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
           chmod 600 id_github_gactions
-          ssh -i id_github_gactions -o StrictHostKeyChecking=no ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }} <<'EOF'
-            apt-ftparchive packages /srv/repo/debian/dists/stable/main/binary-arm64 > /srv/repo/debian/dists/stable/main/binary-arm64/Packages
-            gzip -9c /srv/repo/debian/dists/stable/main/binary-arm64/Packages > /srv/repo/debian/dists/stable/main/binary-arm64/Packages.gz
-            EOF
+          ssh -i id_github_gactions -o StrictHostKeyChecking=no ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }} \
+            "bash -c 'apt-ftparchive packages /srv/repo/debian/dists/stable/main/binary-arm64 > /srv/repo/debian/dists/stable/main/binary-arm64/Packages && gzip -9c /srv/repo/debian/dists/stable/main/binary-arm64/Packages > /srv/repo/debian/dists/stable/main/binary-arm64/Packages.gz'"
