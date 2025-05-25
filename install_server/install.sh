@@ -13,6 +13,7 @@ print_help() {
   echo "  --generate-indexes, -g  Genera índices APT (.deb) y YUM (.rpm)"
   echo "  --firewall, -f         Configura UFW para permitir SSH, HTTP y HTTPS"
   echo "  --markdown, -m        Instala 'markdown' y genera index.html desde README.md"
+  echo "  --reindex, -r       Regenera Packages.gz para amd64 y arm64"
   echo "  --help, -h       Muestra esta ayuda"
   echo ""
   echo "Ejemplos:"
@@ -165,6 +166,21 @@ case "$1" in
     ;;
   --markdown|-m)
     install_markdown_index
+    ;;
+  --reindex|-r)
+    echo "🔄 Regenerando índices APT (.deb)..."
+
+    for arch in amd64 arm64; do
+      DIR="/srv/repo/debian/dists/stable/main/binary-$arch"
+      if [ -d "$DIR" ]; then
+        echo "📁 Procesando $DIR"
+        cd "$DIR"
+        dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
+        echo "✅ Packages.gz actualizado en $DIR"
+      else
+        echo "⚠️  Directorio no encontrado: $DIR"
+      fi
+    done
     ;;
   --help|-h|"")
     print_help

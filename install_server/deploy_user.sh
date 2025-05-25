@@ -19,9 +19,10 @@ if [ -t 0 ]; then
     echo "❌ Debes pasar la clave pública como argumento o por stdin."
     exit 1
   fi
-  echo "$1" | sudo tee "$AUTHORIZED_KEYS" > /dev/null
+  echo "command=\"/bin/false\",no-agent-forwarding,no-X11-forwarding,no-port-forwarding $1" | sudo tee "$AUTHORIZED_KEYS" > /dev/null
 else
-  sudo tee "$AUTHORIZED_KEYS" > /dev/null
+  read -r KEY
+  echo "command=\"/bin/false\",no-agent-forwarding,no-X11-forwarding,no-port-forwarding $KEY" | sudo tee "$AUTHORIZED_KEYS" > /dev/null
 fi
 
 sudo chmod 600 "$AUTHORIZED_KEYS"
