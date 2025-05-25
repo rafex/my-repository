@@ -52,7 +52,7 @@ fn verificar_curp(curp: &str) -> bool {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn verify_curp(curp: *const c_char) -> bool {
+pub extern "C" fn verify_curp(curp: *const c_char) -> bool {
     if curp.is_null() {
         return false;
     }
