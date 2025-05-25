@@ -3,3 +3,4 @@ Version: 0.1.0
 Architecture: amd64
 Maintainer: Raúl González <rafex@rafex.dev>
 Description: Biblioteca Rust para validar CURP
+
