@@ -1,11 +1,11 @@
 [package]
-name = "curp_verifier"
+name = "curp_generator"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "curp_verifier"
-path = "src/lib_curp_verifier.rs"
+name = "curp_generator"
+path = "src/lib_curp_generator.rs"
 crate-type = ["cdylib"]
 
 [dependencies]

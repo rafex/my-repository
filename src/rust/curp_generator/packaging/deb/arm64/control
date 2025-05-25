@@ -1,0 +1,12 @@
+Package: curp-verifier
+Version: 0.1.0
+Architecture: arm64
+Maintainer: Raúl González <rafex@rafex.dev>
+Installed-Size: 200
+Depends: libc6 (>= 2.28)
+Section: libs
+Priority: optional
+Homepage: https://github.com/rafex/my-repository/tree/main/src/rust/curp_verifier
+Description: Biblioteca Rust para validar CURP
+ Biblioteca ligera desarrollada en Rust para verificar CURP conforme al instructivo oficial del RENAPO.
+
