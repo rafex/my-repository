@@ -29,13 +29,12 @@ jobs:
       - name: 📦 Build .deb package
         working-directory: src/rust/curp_verifier
         run: |
-          mkdir -p deb_pkg/usr/lib
-          mkdir -p deb_pkg/usr/include
-          cp target/release/libcurp_verifier.* deb_pkg/usr/lib/
-          cp include/curp_verifier.h deb_pkg/usr/include/
+          make install DESTDIR=$(pwd)/deb_pkg
           mkdir -p deb_pkg/DEBIAN
           cp packaging/deb/amd64/control deb_pkg/DEBIAN/control
-          dpkg-deb --build deb_pkg curp-verifier.deb
+          dpkg-deb --build deb_pkg curp-verifier-amd64.deb
+          ls -lh curp-verifier-amd64.deb
+          ls -lah
 
       - name: 🚀 Upload to server
         uses: appleboy/scp-action@v0.1.7
@@ -43,7 +42,7 @@ jobs:
           host: ${{ secrets.RAFEX_SERVER_HOST }}
           username: ${{ secrets.RAFEX_SERVER_USER }}
           key: ${{ secrets.RAFEX_SERVER_SSH_KEY }}
-          source: "src/rust/curp_verifier/curp-verifier.deb"
+          source: "src/rust/curp_verifier/curp-verifier-amd64.deb"
           target: "/srv/repo/debian/dists/stable/main/binary-amd64"
           debug: true
 
@@ -89,13 +88,11 @@ jobs:
       - name: 📦 Build .deb package for ARM64
         working-directory: src/rust/curp_verifier
         run: |
-          mkdir -p deb_pkg/usr/lib
-          mkdir -p deb_pkg/usr/include
-          cp target/release/libcurp_verifier.* deb_pkg/usr/lib/
-          cp include/curp_verifier.h deb_pkg/usr/include/
+          make install DESTDIR=$(pwd)/deb_pkg
           mkdir -p deb_pkg/DEBIAN
           cp packaging/deb/arm64/control deb_pkg/DEBIAN/control
           dpkg-deb --build deb_pkg curp-verifier-arm64.deb
+          ls -lh curp-verifier-arm64.deb
           ls -lah
 
       - name: 🚀 Upload ARM64 package to server

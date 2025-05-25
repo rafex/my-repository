@@ -26,5 +26,26 @@ clean:
 
 # Instala la librería y el header (requiere sudo)
 install:
-	sudo install -m 0755 $(TARGET) /usr/lib/
-	sudo install -m 0644 $(HEADER) /usr/include/
+	install -m 0755 $(TARGET) $(if $(DESTDIR),$(DESTDIR)/usr/lib,/usr/lib)
+	install -m 0644 $(HEADER) $(if $(DESTDIR),$(DESTDIR)/usr/include,/usr/include)
+
+# Empaqueta el binario y el header en un .deb para amd64
+package-deb: all
+	mkdir -p deb_pkg/usr/lib
+	mkdir -p deb_pkg/usr/include
+	mkdir -p deb_pkg/DEBIAN
+	cp $(TARGET) deb_pkg/usr/lib/
+	cp $(HEADER) deb_pkg/usr/include/
+	cp packaging/deb/amd64/control deb_pkg/DEBIAN/control
+	dpkg-deb --build deb_pkg curp-verifier-amd64.deb
+
+# Empaqueta para ARM64
+package-deb-arm64:
+	cargo build --release --target aarch64-unknown-linux-gnu
+	mkdir -p deb_pkg/usr/lib
+	mkdir -p deb_pkg/usr/include
+	mkdir -p deb_pkg/DEBIAN
+	cp target/aarch64-unknown-linux-gnu/release/lib$(CRATE).* deb_pkg/usr/lib/
+	cp $(HEADER) deb_pkg/usr/include/
+	cp packaging/deb/arm64/control deb_pkg/DEBIAN/control
+	dpkg-deb --build deb_pkg curp-verifier-arm64.deb
