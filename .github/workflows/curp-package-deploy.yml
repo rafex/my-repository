@@ -33,7 +33,7 @@ jobs:
           mkdir -p deb_pkg/DEBIAN
           cp packaging/deb/amd64/control deb_pkg/DEBIAN/control
           SIZE=$(du -ks deb_pkg/usr | cut -f1)
-          DEPENDS=$(dpkg-shlibdeps -O deb_pkg/usr/lib/libcurp_verifier.so | sed -n 's/^shlibs:Depends=//p')
+          DEPENDS=$(ldd deb_pkg/usr/lib/libcurp_verifier.so | awk '{print $1}' | grep -E '^lib' | sort -u | paste -sd "," -)
 
           # Añadir si no existen o reemplazar líneas
           grep -q '^Installed-Size:' deb_pkg/DEBIAN/control && \
@@ -97,7 +97,7 @@ jobs:
           mkdir -p deb_pkg/DEBIAN
           cp packaging/deb/arm64/control deb_pkg/DEBIAN/control
           SIZE=$(du -ks deb_pkg/usr | cut -f1)
-          DEPENDS=$(dpkg-shlibdeps -O deb_pkg/usr/lib/libcurp_verifier.so | sed -n 's/^shlibs:Depends=//p')
+          DEPENDS=$(ldd deb_pkg/usr/lib/libcurp_verifier.so | awk '{print $1}' | grep -E '^lib' | sort -u | paste -sd "," -)
 
           # Añadir si no existen o reemplazar líneas
           grep -q '^Installed-Size:' deb_pkg/DEBIAN/control && \
