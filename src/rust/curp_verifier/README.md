@@ -8,7 +8,7 @@ Este proyecto implementa en Rust el algoritmo de verificación del **dígito ver
 
 El algoritmo que usamos está sustentado por:
 - [Instructivo en línea](https://curp.readthedocs.io/es/latest/instructivo/verificacion.html)
-- [DOF 18-10-2021 - Instructivo Normativo para la Asignación de la CURP](https://www.dof.gob.mx/nota_detalle.php?codigo=5638826&fecha=18/10/2021)
+- [DOF 18-10-2021 - Instructivo Normativo para la Asignación de la CURP](https://sre.gob.mx/component/phocadownload/category/2-marco-normativo?download=1116:instructivo-normativo-para-la-asignacion-de-la-clave-unica-de-registro-de-poblacion-dof-18-10-2021-texto-vigente)
 
 ## Algoritmo del dígito verificador (resumen)
 
@@ -56,3 +56,9 @@ Este dígito sirve para validar que la CURP no tenga errores de captura.
 | Z        | 36    |
 
 Este repositorio incluye pruebas para validar CURPs correctamente y garantiza que la validación esté alineada con el marco legal actual.
+
+## ⚠️ Advertencia
+
+Este software se proporciona con fines prácticos y educativos únicamente. Su implementación del algoritmo de validación del dígito verificador de la CURP se basa en fuentes oficiales públicas, pero **no sustituye en ningún momento la funcionalidad ni validez del portal oficial del gobierno mexicano** disponible en: [https://www.gob.mx/curp/](https://www.gob.mx/curp/)
+
+Para obtener tu CURP oficial o validar registros con validez jurídica, consulta directamente el sitio oficial.
