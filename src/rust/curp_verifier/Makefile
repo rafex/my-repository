@@ -40,6 +40,8 @@ package-deb: all
 	cp $(TARGET) deb_pkg/usr/lib/
 	cp $(HEADER) deb_pkg/usr/include/
 	cp packaging/deb/amd64/control deb_pkg/DEBIAN/control
+	mkdir -p deb_pkg/usr/share/doc/curp-verifier
+	gzip -c README.md > deb_pkg/usr/share/doc/curp-verifier/README.md.gz
 	dpkg-deb --build deb_pkg curp-verifier-amd64.deb
 
 # Empaqueta para ARM64
@@ -51,4 +53,6 @@ package-deb-arm64:
 	cp target/aarch64-unknown-linux-gnu/release/lib$(CRATE).$(EXT) deb_pkg/usr/lib/
 	cp $(HEADER) deb_pkg/usr/include/
 	cp packaging/deb/arm64/control deb_pkg/DEBIAN/control
+	mkdir -p deb_pkg/usr/share/doc/curp-verifier
+	gzip -c README.md > deb_pkg/usr/share/doc/curp-verifier/README.md.gz
 	dpkg-deb --build deb_pkg curp-verifier-arm64.deb
