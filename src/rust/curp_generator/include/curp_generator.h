@@ -1,5 +1,5 @@
-#ifndef CURP_VERIFIER_H
-#define CURP_VERIFIER_H
+#ifndef CURP_GENERATOR_H
+#define CURP_GENERATOR_H
 
 #include <stdbool.h>
 
@@ -15,10 +15,19 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 
-bool verify_curp(const char *curp);
+typedef struct DatosPersonales {
+  const char *nombre;
+  const char *primer_apellido;
+  const char *segundo_apellido;
+  char sexo;
+  const char *fecha_nacimiento;
+  const char *entidad;
+} DatosPersonales;
+
+char *generar_curp_c(const struct DatosPersonales *datos);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // CURP_VERIFIER_H
+#endif // CURP_GENERATOR_H
