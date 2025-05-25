@@ -1,0 +1,20 @@
+language = "C"
+include_version = true
+header = """\
+#ifndef CURP_GENERATOR_H
+#define CURP_GENERATOR_H
+
+#include <stdbool.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+"""
+
+trailer = """\
+#ifdef __cplusplus
+}
+#endif
+
+#endif // CURP_GENERATOR_H
+"""

@@ -1,7 +1,4 @@
-use std::ffi::CStr;
-use std::os::raw::c_char;
-
-mod interno {
+pub mod logic {
     use std::collections::HashMap;
 
     fn obtener_valores_curp() -> HashMap<char, u32> {
@@ -51,17 +48,5 @@ mod interno {
             }
             None => false,
         }
-    }
-}
-
-#[no_mangle]
-pub extern "C" fn verify_curp(curp: *const c_char) -> bool {
-    if curp.is_null() {
-        return false;
-    }
-    let c_str = unsafe { CStr::from_ptr(curp) };
-    match c_str.to_str() {
-        Ok(rust_str) => interno::verificar_curp(rust_str),
-        Err(_) => false,
     }
 }

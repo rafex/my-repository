@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
       - "src/rust/curp_verifier/**"
-      - ".github/workflows/curp-package-deploy.yml"
+      - ".github/workflows/curp-verifier-package-deploy.yml"
   workflow_dispatch:
 
 jobs:
@@ -29,6 +29,7 @@ jobs:
       - name: 📦 Build .deb package
         working-directory: src/rust/curp_verifier
         run: |
+          make changelog-deb ARCH=amd64
           make package-deb ARCH=amd64
           ls -lah
           mv curp-verifier_*_amd64.deb $GITHUB_WORKSPACE/
@@ -80,6 +81,7 @@ jobs:
       - name: 📦 Build .deb package for ARM64
         working-directory: src/rust/curp_verifier
         run: |
+          make changelog-deb ARCH=arm64
           make package-deb ARCH=arm64
           ls -lah
           mv curp-verifier_*_arm64.deb $GITHUB_WORKSPACE/

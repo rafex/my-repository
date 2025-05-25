@@ -1,6 +1,6 @@
 # curp_verifier
 
-> Versión actual: 0.1.0
+> Versión actual: 0.1.1-1+rafex
 
 Este proyecto implementa en Rust el algoritmo de verificación del **dígito verificador de la CURP**, conforme a lo estipulado en el [Instructivo Normativo para la Asignación de la Clave Única de Registro de Población](https://curp.readthedocs.io/es/latest/instructivo/verificacion.html) y publicado oficialmente en el Diario Oficial de la Federación (DOF) el 18 de octubre de 2021.
 

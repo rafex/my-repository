@@ -1,8 +1,8 @@
 # Soporte para instalación personalizada
 PREFIX ?= /usr
 # Nombre del crate
-CRATE=curp_verifier
-NAME=curp-verifier
+CRATE=curp_generator
+NAME=curp-generator
 EXT=$(shell uname | grep -q Darwin && echo dylib || echo so)
 TARGET=target/release/lib$(CRATE).$(EXT)
 HEADER=include/$(CRATE).h
@@ -67,11 +67,11 @@ package-deb:
 	grep -q '^Depends:' deb_pkg/DEBIAN/control && \
 		sed -i "s/^Depends:.*/Depends: $$DEPENDS/" deb_pkg/DEBIAN/control || \
 		echo "Depends: $$DEPENDS" >> deb_pkg/DEBIAN/control; \
-	dpkg-deb --build deb_pkg $(NAME)_$${VERSION}_$(ARCH).deb
+	dpkg-deb --build deb_pkg $$NAME_$${VERSION}_$(ARCH).deb
 
 changelog-deb:
 	@PACKAGE=$(NAME); \
-	VERSION=$$(grep '^Version:' packaging/deb/$(ARCH)/control | cut -d' ' -f2); \
+	$$(grep '^Version:' packaging/deb/$(ARCH)/control | cut -d' ' -f2); \
 	EMAIL="rafex@rafex.dev"; \
 	FULLNAME="Raúl González"; \
 	DATE=$$(date -R); \
