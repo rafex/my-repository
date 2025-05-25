@@ -33,7 +33,7 @@ install:
 	install -m 0644 $(HEADER) $(if $(DESTDIR),$(DESTDIR)/usr/include,/usr/include)
 
 # Empaqueta el binario y el header en un .deb para amd64
-package-deb: all
+package-deb-amd64:
 	mkdir -p deb_pkg/usr/lib
 	mkdir -p deb_pkg/usr/include
 	mkdir -p deb_pkg/DEBIAN
@@ -45,6 +45,17 @@ package-deb: all
 	cp packaging/deb/amd64/changelog deb_pkg/usr/share/doc/curp-verifier/changelog
 	gzip -c packaging/deb/amd64/changelog > deb_pkg/usr/share/doc/curp-verifier/changelog.Debian.gz
 	VERSION=$(shell grep '^Version:' packaging/deb/amd64/control | cut -d' ' -f2)
+	SIZE=$(du -ks deb_pkg/usr | cut -f1)
+    DEPENDS=$(ldd deb_pkg/usr/lib/libcurp_verifier.so | awk '{print $1}' | grep -E '^lib' | while read -r lib; do dpkg -S "$lib" 2>/dev/null | cut -d: -f1; done | sort -u | paste -sd "," -)
+	# Añadir si no existen o reemplazar líneas
+    grep -q '^Installed-Size:' deb_pkg/DEBIAN/control && \
+        sed -i "s/^Installed-Size:.*/Installed-Size: $SIZE/" deb_pkg/DEBIAN/control || \
+        echo "Installed-Size: $SIZE" >> deb_pkg/DEBIAN/control
+
+    grep -q '^Depends:' deb_pkg/DEBIAN/control && \
+        sed -i "s/^Depends:.*/Depends: $DEPENDS/" deb_pkg/DEBIAN/control || \
+        echo "Depends: $DEPENDS" >> deb_pkg/DEBIAN/control
+
 	dpkg-deb --build deb_pkg curp-verifier_$(VERSION)_amd64.deb
 
 # Empaqueta para ARM64
@@ -61,6 +72,17 @@ package-deb-arm64:
 	cp packaging/deb/arm64/changelog deb_pkg/usr/share/doc/curp-verifier/changelog
 	gzip -c packaging/deb/arm64/changelog > deb_pkg/usr/share/doc/curp-verifier/changelog.Debian.gz
 	VERSION=$(shell grep '^Version:' packaging/deb/arm64/control | cut -d' ' -f2)
+	SIZE=$(du -ks deb_pkg/usr | cut -f1)
+    DEPENDS=$(ldd deb_pkg/usr/lib/libcurp_verifier.so | awk '{print $1}' | grep -E '^lib' | while read -r lib; do dpkg -S "$lib" 2>/dev/null | cut -d: -f1; done | sort -u | paste -sd "," -)
+	# Añadir si no existen o reemplazar líneas
+    grep -q '^Installed-Size:' deb_pkg/DEBIAN/control && \
+        sed -i "s/^Installed-Size:.*/Installed-Size: $SIZE/" deb_pkg/DEBIAN/control || \
+        echo "Installed-Size: $SIZE" >> deb_pkg/DEBIAN/control
+
+    grep -q '^Depends:' deb_pkg/DEBIAN/control && \
+        sed -i "s/^Depends:.*/Depends: $DEPENDS/" deb_pkg/DEBIAN/control || \
+        echo "Depends: $DEPENDS" >> deb_pkg/DEBIAN/control
+		
 	dpkg-deb --build deb_pkg curp-verifier_$(VERSION)_arm64.deb
 
 changelog-deb:
@@ -87,3 +109,9 @@ changelog-deb-dch:
 		exit 1; \
 	fi
 	dch --changelog packaging/deb/$(ARCH)/changelog
+
+# Actualiza la versión en README.md usando el valor en el archivo control
+update-readme-version:
+	@VERSION=$$(grep '^Version:' packaging/deb/amd64/control | cut -d' ' -f2); \
+	sed -i.bak "s/^Versión actual: .*$$/Versión actual: $$VERSION/" README.md; \
+	rm -f README.md.bak
