@@ -27,4 +27,5 @@ fi
 sudo chmod 600 "$AUTHORIZED_KEYS"
 sudo chown "$USER:$USER" "$AUTHORIZED_KEYS"
 
+sudo chown githubdeploy:www-data /srv/repo/debian/dists/stable/main/binary-*
 echo "✅ Usuario $USER configurado correctamente con acceso SSH."

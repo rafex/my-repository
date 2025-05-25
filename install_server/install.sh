@@ -28,6 +28,7 @@ init_server() {
 
   echo "📁 Creando estructura de directorios..."
   sudo mkdir -p /srv/repo/debian/dists/stable/main/binary-amd64
+  sudo mkdir -p /srv/repo/debian/dists/stable/main/binary-arm64
   sudo mkdir -p /srv/repo/redhat
   sudo chown -R "$USER:www-data" /srv/repo
 
