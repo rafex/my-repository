@@ -2,6 +2,7 @@
 PREFIX ?= /usr
 # Nombre del crate
 CRATE=curp_verifier
+NAME=curp-verifier
 EXT=$(shell uname | grep -q Darwin && echo dylib || echo so)
 TARGET=target/release/lib$(CRATE).$(EXT)
 HEADER=include/$(CRATE).h
@@ -53,10 +54,10 @@ package-deb:
 	mkdir -p deb_pkg/DEBIAN
 	cp $(HEADER) deb_pkg/usr/include/
 	cp packaging/deb/$(ARCH)/control deb_pkg/DEBIAN/control
-	mkdir -p deb_pkg/usr/share/doc/curp-verifier
-	gzip -c README.md > deb_pkg/usr/share/doc/curp-verifier/README.md.gz
-	cp packaging/deb/$(ARCH)/changelog deb_pkg/usr/share/doc/curp-verifier/changelog
-	gzip -c packaging/deb/$(ARCH)/changelog > deb_pkg/usr/share/doc/curp-verifier/changelog.Debian.gz
+	mkdir -p deb_pkg/usr/share/doc/$(NAME)
+	gzip -c README.md > deb_pkg/usr/share/doc/$(NAME)/README.md.gz
+	cp packaging/deb/$(ARCH)/changelog deb_pkg/usr/share/doc/$(NAME)/changelog
+	gzip -c packaging/deb/$(ARCH)/changelog > deb_pkg/usr/share/doc/$(NAME)/changelog.Debian.gz
 	@VERSION=$$(grep '^Version:' packaging/deb/$(ARCH)/control | cut -d' ' -f2); \
 	SIZE=$$(du -ks deb_pkg/usr | cut -f1); \
 	DEPENDS=$$(ldd deb_pkg/usr/lib/libcurp_verifier.so | awk '{print $$1}' | grep -E '^lib' | while read -r lib; do dpkg -S "$$lib" 2>/dev/null | cut -d: -f1; done | sort -u | paste -sd "," -); \
@@ -66,16 +67,16 @@ package-deb:
 	grep -q '^Depends:' deb_pkg/DEBIAN/control && \
 		sed -i "s/^Depends:.*/Depends: $$DEPENDS/" deb_pkg/DEBIAN/control || \
 		echo "Depends: $$DEPENDS" >> deb_pkg/DEBIAN/control; \
-	dpkg-deb --build deb_pkg curp-verifier_$${VERSION}_$(ARCH).deb
+	dpkg-deb --build deb_pkg $(NAME)_$${VERSION}_$(ARCH).deb
 
 changelog-deb:
-	@PACKAGE=curp-verifier; \
-	VERSION=0.1.0; \
+	@PACKAGE=$(NAME); \
+	VERSION=$$(grep '^Version:' packaging/deb/$(ARCH)/control | cut -d' ' -f2); \
 	EMAIL="rafex@rafex.dev"; \
 	FULLNAME="Raúl González"; \
 	DATE=$$(date -R); \
 	MESSAGE=$$(git log -1 --pretty=format:'  * %s'); \
-	echo "$$PACKAGE ($$VERSION-1) stable; urgency=medium\n\n$$MESSAGE\n\n -- $$FULLNAME <$$EMAIL>  $$DATE\n" > packaging/deb/amd64/changelog
+	echo "$$PACKAGE ($$VERSION-1) stable; urgency=medium\n\n$$MESSAGE\n\n -- $$FULLNAME <$$EMAIL>  $$DATE\n" > packaging/deb/$(ARCH)/changelog
 
 changelog-md:
 	@echo "# Changelog" > CHANGELOG.md
