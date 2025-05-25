@@ -1,0 +1,11 @@
+[package]
+name = "curp_verifier"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "curp_verifier"
+path = "src/lib_curp.rs"
+crate-type = ["cdylib"]
+
+[dependencies]

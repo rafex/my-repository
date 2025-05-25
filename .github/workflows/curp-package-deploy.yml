@@ -1,0 +1,56 @@
+name: Build and Deploy Debian Package CURP Verifier
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "src/rust/curp_verifier/**"
+      - ".github/workflows/package-deploy.yml"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout repo
+        uses: actions/checkout@v3
+
+      - name: 🦀 Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 📦 Install packaging tools
+        run: sudo apt update && sudo apt install -y dpkg-dev
+
+      - name: 🛠 Build Rust library
+        working-directory: src/rust/curp_verifier
+        run: make all
+
+      - name: 📦 Build .deb package
+        working-directory: src/rust/curp_verifier
+        run: |
+          mkdir -p deb_pkg/usr/lib
+          mkdir -p deb_pkg/usr/include
+          cp target/release/libcurp_verifier.* deb_pkg/usr/lib/
+          cp include/curp_verifier.h deb_pkg/usr/include/
+          mkdir -p deb_pkg/DEBIAN
+          cp packaging/deb/control deb_pkg/DEBIAN/control
+          dpkg-deb --build deb_pkg curp-verifier.deb
+
+      - name: 🚀 Upload to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.RAFEX_SERVER_HOST }}
+          username: ${{ secrets.RAFEX_SERVER_USER }}
+          key: ${{ secrets.RAFEX_SERVER_SSH_KEY }}
+          source: "src/rust/curp_verifier/curp-verifier.deb"
+          target: "/srv/repo/debian/dists/stable/main/binary-amd64"
+
+      - name: 🔄 Regenerate Packages.gz
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.RAFEX_SERVER_HOST }}
+          username: ${{ secrets.RAFEX_SERVER_USER }}
+          key: ${{ secrets.RAFEX_SERVER_SSH_KEY }}
+          script: |
+            cd /srv/repo/debian/dists/stable/main/binary-amd64
+            dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz

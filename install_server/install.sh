@@ -27,7 +27,8 @@ init_server() {
   sudo apt install -y nginx dpkg-dev createrepo-c gnupg certbot python3-certbot-nginx
 
   echo "📁 Creando estructura de directorios..."
-  sudo mkdir -p /srv/repo/{debian/dists/stable/main/binary-amd64,redhat}
+  sudo mkdir -p /srv/repo/debian/dists/stable/main/binary-amd64
+  sudo mkdir -p /srv/repo/redhat
   sudo chown -R "$USER:www-data" /srv/repo
 
   echo "📝 Configurando NGINX (HTTP temporal)..."
