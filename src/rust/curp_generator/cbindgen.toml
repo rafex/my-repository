@@ -1,8 +1,8 @@
 language = "C"
 include_version = true
 header = """\
-#ifndef CURP_VERIFIER_H
-#define CURP_VERIFIER_H
+#ifndef CURP_GENERATOR_H
+#define CURP_GENERATOR_H
 
 #include <stdbool.h>
 
@@ -16,5 +16,5 @@ trailer = """\
 }
 #endif
 
-#endif // CURP_VERIFIER_H
+#endif // CURP_GENERATOR_H
 """

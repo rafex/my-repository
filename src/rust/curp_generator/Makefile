@@ -54,10 +54,10 @@ package-deb:
 	mkdir -p deb_pkg/DEBIAN
 	cp $(HEADER) deb_pkg/usr/include/
 	cp packaging/deb/$(ARCH)/control deb_pkg/DEBIAN/control
-	mkdir -p deb_pkg/usr/share/doc/curp-verifier
-	gzip -c README.md > deb_pkg/usr/share/doc/curp-verifier/README.md.gz
-	cp packaging/deb/$(ARCH)/changelog deb_pkg/usr/share/doc/curp-verifier/changelog
-	gzip -c packaging/deb/$(ARCH)/changelog > deb_pkg/usr/share/doc/curp-verifier/changelog.Debian.gz
+	mkdir -p deb_pkg/usr/share/doc/$(NAME)
+	gzip -c README.md > deb_pkg/usr/share/doc/$(NAME)/README.md.gz
+	cp packaging/deb/$(ARCH)/changelog deb_pkg/usr/share/doc/$(NAME)/changelog
+	gzip -c packaging/deb/$(ARCH)/changelog > deb_pkg/usr/share/doc/$(NAME)/changelog.Debian.gz
 	@VERSION=$$(grep '^Version:' packaging/deb/$(ARCH)/control | cut -d' ' -f2); \
 	SIZE=$$(du -ks deb_pkg/usr | cut -f1); \
 	DEPENDS=$$(ldd deb_pkg/usr/lib/libcurp_verifier.so | awk '{print $$1}' | grep -E '^lib' | while read -r lib; do dpkg -S "$$lib" 2>/dev/null | cut -d: -f1; done | sort -u | paste -sd "," -); \
@@ -70,13 +70,13 @@ package-deb:
 	dpkg-deb --build deb_pkg $$NAME_$${VERSION}_$(ARCH).deb
 
 changelog-deb:
-	@PACKAGE=curp-verifier; \
-	VERSION=0.1.0; \
+	@PACKAGE=$(NAME); \
+	$$(grep '^Version:' packaging/deb/$(ARCH)/control | cut -d' ' -f2); \
 	EMAIL="rafex@rafex.dev"; \
 	FULLNAME="Raúl González"; \
 	DATE=$$(date -R); \
 	MESSAGE=$$(git log -1 --pretty=format:'  * %s'); \
-	echo "$$PACKAGE ($$VERSION-1) stable; urgency=medium\n\n$$MESSAGE\n\n -- $$FULLNAME <$$EMAIL>  $$DATE\n" > packaging/deb/amd64/changelog
+	echo "$$PACKAGE ($$VERSION-1) stable; urgency=medium\n\n$$MESSAGE\n\n -- $$FULLNAME <$$EMAIL>  $$DATE\n" > packaging/deb/$(ARCH)/changelog
 
 changelog-md:
 	@echo "# Changelog" > CHANGELOG.md
@@ -97,5 +97,5 @@ changelog-deb-dch:
 # Actualiza la versión en README.md usando el valor en el archivo control
 update-readme-version:
 	@VERSION=$$(grep '^Version:' packaging/deb/amd64/control | cut -d' ' -f2); \
-	sed -i.bak "s/^Versión actual: .*$$/Versión actual: $$VERSION/" README.md; \
+	sed -i.bak -E "s|^> Versión actual: .*|> Versión actual: $$VERSION|" README.md; \
 	rm -f README.md.bak

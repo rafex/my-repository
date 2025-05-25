@@ -97,5 +97,5 @@ changelog-deb-dch:
 # Actualiza la versión en README.md usando el valor en el archivo control
 update-readme-version:
 	@VERSION=$$(grep '^Version:' packaging/deb/amd64/control | cut -d' ' -f2); \
-	sed -i.bak "s/^Versión actual: .*$$/Versión actual: $$VERSION/" README.md; \
+	sed -i.bak -E "s|^> Versión actual: .*|> Versión actual: $$VERSION|" README.md; \
 	rm -f README.md.bak
