@@ -1,3 +1,5 @@
+# Soporte para instalación personalizada
+PREFIX ?= /usr
 # Nombre del crate
 CRATE=curp_verifier
 EXT=$(shell uname | grep -q Darwin && echo dylib || echo so)
@@ -27,10 +29,10 @@ clean:
 
 # Instala la librería y el header (requiere sudo)
 install:
-	mkdir -p $(if $(DESTDIR),$(DESTDIR)/usr/lib,/usr/lib)
-	mkdir -p $(if $(DESTDIR),$(DESTDIR)/usr/include,/usr/include)
-	install -m 0755 $(TARGET) $(if $(DESTDIR),$(DESTDIR)/usr/lib,/usr/lib)
-	install -m 0644 $(HEADER) $(if $(DESTDIR),$(DESTDIR)/usr/include,/usr/include)
+	mkdir -p $(DESTDIR)/$(PREFIX)/lib
+	mkdir -p $(DESTDIR)/$(PREFIX)/include
+	install -m 0755 $(TARGET) $(DESTDIR)/$(PREFIX)/lib
+	install -m 0644 $(HEADER) $(DESTDIR)/$(PREFIX)/include
 
 # Empaqueta el binario y el header en un .deb para la arquitectura especificada
 package-deb:
