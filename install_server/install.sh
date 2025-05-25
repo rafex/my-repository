@@ -71,7 +71,10 @@ install_markdown_index() {
   fi
 
   echo "📄 Generando index.html a partir de README.md..."
-  markdown /opt/src/my-repository/README.md > /srv/repo/index.html
+  echo '<!DOCTYPE html>' > /srv/repo/index.html
+  echo '<html><head><meta charset="UTF-8"><title>Repositorio</title></head><body>' >> /srv/repo/index.html
+  markdown /opt/src/my-repository/README.md >> /srv/repo/index.html
+  echo '</body></html>' >> /srv/repo/index.html
   echo "✅ Archivo index.html generado con 'markdown'."
 }
 
