@@ -1,10 +1,19 @@
 FROM debian:stable
 
-RUN apt-get update && apt-get install -y curl gnupg ca-certificates
+RUN apt-get update && apt-get install -y \
+    curl \
+    gnupg \
+    ca-certificates \
+    gcc && \
+    echo "deb [trusted=yes] https://repository.rafex.app/debian stable main" > /etc/apt/sources.list.d/rafex.list && \
+    apt-get update && \
+    apt-get install -y curp-verifier && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Evita errores por firmas
-RUN echo "deb [trusted=yes] https://repository.rafex.app/debian stable main" > /etc/apt/sources.list.d/rafex.list
+COPY main.c /app/main.c
+RUN gcc /app/main.c -L/usr/lib -lcurp_verifier -o /app/test && \
+    echo "📦 Ejecutando prueba de curp-verifier:" && /app/test
 
-RUN apt-get update && apt-get install -y curp-verifier
+RUN ldd /usr/lib/libcurp_verifier.so
 
-CMD ["ls", "-l", "/usr/lib/libcurp_verifier.so"]
+CMD ["/app/test"]

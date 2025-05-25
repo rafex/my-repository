@@ -47,6 +47,8 @@ EOF
 
     echo "📤 Exportando clave pública a $KEYFILE..."
     gpg --armor --export "$KEYID" > "$KEYFILE"
+    cp "$KEYFILE" "$REPO_PATH/rafex.gpg"
+    echo "✅ Clave pública copiada a $REPO_PATH/rafex.gpg"
     ;;
 
   --sign)
@@ -78,6 +80,8 @@ EOF
     KEYID=$(cat "$KEYID_FILE")
     gpg --default-key "$KEYID" -abs -o Release.gpg Release
     gpg --default-key "$KEYID" --clearsign -o InRelease Release
+
+    [ -f "$KEYFILE" ] && cp "$KEYFILE" "$REPO_PATH/rafex.gpg"
     ;;
 
   *)
