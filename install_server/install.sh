@@ -12,6 +12,7 @@ print_help() {
   echo "  --ssl, -s        Ejecuta Certbot y activa HTTPS si ya existe el certificado"
   echo "  --generate-indexes, -g  Genera índices APT (.deb) y YUM (.rpm)"
   echo "  --firewall, -f         Configura UFW para permitir SSH, HTTP y HTTPS"
+  echo "  --markdown, -m        Instala 'markdown' y genera index.html desde README.md"
   echo "  --help, -h       Muestra esta ayuda"
   echo ""
   echo "Ejemplos:"
@@ -50,7 +51,28 @@ EOF
   sudo rm -f /etc/nginx/sites-enabled/default
   sudo systemctl restart nginx
 
+  echo "📄 Generando index.html a partir de README.md..."
+  if command -v markdown >/dev/null 2>&1; then
+    markdown /opt/src/my-repository/README.md > /srv/repo/index.html
+  else
+    echo "<pre>" > /srv/repo/index.html
+    cat /opt/src/my-repository/README.md >> /srv/repo/index.html
+    echo "</pre>" >> /srv/repo/index.html
+  fi
+  echo "✅ Archivo index.html generado en /srv/repo/"
   echo "✅ Repositorio accesible temporalmente en HTTP: http://repository.rafex.app/"
+}
+
+install_markdown_index() {
+  echo "📥 Instalando 'markdown' si es necesario..."
+  if ! command -v markdown >/dev/null 2>&1; then
+    sudo apt update
+    sudo apt install -y markdown
+  fi
+
+  echo "📄 Generando index.html a partir de README.md..."
+  markdown /opt/src/my-repository/README.md > /srv/repo/index.html
+  echo "✅ Archivo index.html generado con 'markdown'."
 }
 
 enable_ssl() {
@@ -132,6 +154,9 @@ case "$1" in
     ;;
   --firewall|-f)
     configure_firewall
+    ;;
+  --markdown|-m)
+    install_markdown_index
     ;;
   --help|-h|"")
     print_help
