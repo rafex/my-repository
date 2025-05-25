@@ -59,7 +59,9 @@ jobs:
           echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
           chmod 600 id_github_gactions
           ssh -i id_github_gactions -o StrictHostKeyChecking=no ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }} \
-            "bash -c 'apt-ftparchive packages /srv/repo/debian/dists/stable/main/binary-amd64 > /srv/repo/debian/dists/stable/main/binary-amd64/Packages && gzip -9c /srv/repo/debian/dists/stable/main/binary-amd64/Packages > /srv/repo/debian/dists/stable/main/binary-amd64/Packages.gz'"
+            "bash -c 'cd /srv/repo/debian && \
+            apt-ftparchive packages dists/stable/main/binary-amd64 > dists/stable/main/binary-amd64/Packages && \
+            gzip -9c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz'"
 
   build-and-deploy-arm64:
     runs-on: ubuntu-latest
@@ -123,4 +125,6 @@ jobs:
           echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
           chmod 600 id_github_gactions
           ssh -i id_github_gactions -o StrictHostKeyChecking=no ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }} \
-            "bash -c 'apt-ftparchive packages /srv/repo/debian/dists/stable/main/binary-arm64 > /srv/repo/debian/dists/stable/main/binary-arm64/Packages && gzip -9c /srv/repo/debian/dists/stable/main/binary-arm64/Packages > /srv/repo/debian/dists/stable/main/binary-arm64/Packages.gz'"
+            "bash -c 'cd /srv/repo/debian && \
+            apt-ftparchive packages dists/stable/main/binary-arm64 > dists/stable/main/binary-arm64/Packages && \
+            gzip -9c dists/stable/main/binary-arm64/Packages > dists/stable/main/binary-arm64/Packages.gz'"
