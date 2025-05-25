@@ -39,6 +39,7 @@ package-deb:
 		exit 1; \
 	fi
 	@echo "📦 Empaquetando para arquitectura: $(ARCH)"
+	mkdir -p deb_pkg/usr/lib
 	@if [ "$(ARCH)" = "arm64" ]; then \
 		cargo build --release --target aarch64-unknown-linux-gnu; \
 		cp target/aarch64-unknown-linux-gnu/release/lib$(CRATE).$(EXT) deb_pkg/usr/lib/; \
@@ -46,7 +47,6 @@ package-deb:
 		cargo build --release; \
 		cp $(TARGET) deb_pkg/usr/lib/; \
 	fi
-	mkdir -p deb_pkg/usr/lib
 	mkdir -p deb_pkg/usr/include
 	mkdir -p deb_pkg/DEBIAN
 	cp $(HEADER) deb_pkg/usr/include/
