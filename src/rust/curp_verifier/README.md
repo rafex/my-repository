@@ -62,3 +62,36 @@ Este software se proporciona con fines prácticos y educativos únicamente. Su i
 Para obtener tu CURP oficial o validar registros con validez jurídica, consulta directamente el sitio oficial.
 
 Nota: Aunque la estructura parece correcta, solo RENAPO puede confirmar su validez oficial.
+
+## Instalación
+
+### Agregar repositorio APT (Debian/Ubuntu)
+
+```bash
+#curl -fsSL https://repository.rafex.app/rafex.gpg | sudo gpg --dearmor -o /usr/share/keyrings/rafex-archive-keyring.gpg
+#echo "deb [signed-by=/usr/share/keyrings/rafex-archive-keyring.gpg] https://repository.rafex.app/debian stable main" | sudo tee /etc/apt/sources.list.d/rafex.list > /dev/null
+echo "deb [trusted=yes] https://repository.rafex.app/debian stable main" > /etc/apt/sources.list.d/rafex.list
+sudo apt update
+sudo apt install curp-verifier
+```
+
+### Verificación de instalación
+
+![Prueba de instalación en Docker](assets/test.png)
+
+### Ejemplo en C
+
+```c
+#include <stdio.h>
+
+extern int verify_curp(const char* curp); // o el nombre real de tu función
+
+int main() {
+    //const char* prueba = "GOCJ850528HDFRNL08";  // CURP inválida
+    const char* prueba = "GOAR881103HDFNRL04";  // CURP válida
+    int valido = verify_curp(prueba);
+    printf("Resultado: %d\n", valido);
+    return 0;
+}
+```
+
