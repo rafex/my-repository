@@ -67,7 +67,7 @@ package-deb:
 	grep -q '^Depends:' deb_pkg/DEBIAN/control && \
 		sed -i "s/^Depends:.*/Depends: $$DEPENDS/" deb_pkg/DEBIAN/control || \
 		echo "Depends: $$DEPENDS" >> deb_pkg/DEBIAN/control; \
-	dpkg-deb --build deb_pkg $$NAME_$${VERSION}_$(ARCH).deb
+	dpkg-deb --build deb_pkg $(NAME)_$${VERSION}_$(ARCH).deb
 
 changelog-deb:
 	@PACKAGE=$(NAME); \
