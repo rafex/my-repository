@@ -34,7 +34,7 @@ jobs:
           cp target/release/libcurp_verifier.* deb_pkg/usr/lib/
           cp include/curp_verifier.h deb_pkg/usr/include/
           mkdir -p deb_pkg/DEBIAN
-          cp packaging/deb/control deb_pkg/DEBIAN/control
+          cp packaging/deb/amd64/control deb_pkg/DEBIAN/control
           dpkg-deb --build deb_pkg curp-verifier.deb
 
       - name: 🚀 Upload to server
