@@ -32,13 +32,13 @@ jobs:
           make changelog-deb ARCH=amd64
           make package-deb ARCH=amd64
           ls -lah
-          mv curp-verifier_*_amd64.deb $GITHUB_WORKSPACE/
+          mv curp-generator_*_amd64.deb $GITHUB_WORKSPACE/
 
       - name: 🚀 Upload to server using scp
         run: |
           echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
           chmod 600 id_github_gactions
-          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./curp-verifier_*_amd64.deb ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-amd64/
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./curp-generator_*_amd64.deb ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-amd64/
 
       - name: 🔄 Regenerate Packages.gz using ssh
         run: |
@@ -84,13 +84,13 @@ jobs:
           make changelog-deb ARCH=arm64
           make package-deb ARCH=arm64
           ls -lah
-          mv curp-verifier_*_arm64.deb $GITHUB_WORKSPACE/
+          mv curp-generator_*_arm64.deb $GITHUB_WORKSPACE/
 
       - name: 🚀 Upload ARM64 package to server using scp
         run: |
           echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
           chmod 600 id_github_gactions
-          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./curp-verifier_*_arm64.deb ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-arm64/
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./curp-generator_*_arm64.deb ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-arm64/
 
       - name: 🔄 Regenerate Packages.gz using ssh
         run: |
