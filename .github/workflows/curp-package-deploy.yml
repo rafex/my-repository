@@ -6,6 +6,7 @@ on:
     paths:
       - "src/rust/curp_verifier/**"
       - ".github/workflows/package-deploy.yml"
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
