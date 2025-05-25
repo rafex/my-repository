@@ -56,7 +56,7 @@ mod interno {
 }
 
 #[no_mangle]
-pub extern "C" fn verificar_curp(curp: *const c_char) -> bool {
+pub extern "C" fn verify_curp(curp: *const c_char) -> bool {
     if curp.is_null() {
         return false;
     }
