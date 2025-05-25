@@ -43,7 +43,7 @@ jobs:
           username: ${{ secrets.RAFEX_SERVER_USER }}
           key: ${{ secrets.RAFEX_SERVER_SSH_KEY }}
           source: "src/rust/curp_verifier/curp-verifier-amd64.deb"
-          target: "/srv/repo/debian/dists/stable/main/binary-amd64"
+          target: "/srv/repo/debian/dists/stable/main/binary-amd64/"
           debug: true
 
       - name: 🔄 Regenerate Packages.gz
@@ -102,7 +102,7 @@ jobs:
           username: ${{ secrets.RAFEX_SERVER_USER }}
           key: ${{ secrets.RAFEX_SERVER_SSH_KEY }}
           source: "src/rust/curp_verifier/curp-verifier-arm64.deb"
-          target: "/srv/repo/debian/dists/stable/main/binary-arm64"
+          target: "/srv/repo/debian/dists/stable/main/binary-arm64/"
           debug: true
 
       - name: 🔄 Regenerate Packages.gz for ARM64
