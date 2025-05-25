@@ -26,3 +26,8 @@ echo "export TERM=xterm-256color" | sudo tee /etc/profile.d/term.sh
 sudo chmod +x /etc/profile.d/term.sh
 
 echo "✅ Configuración del servidor completada."
+
+echo "🕒 Configurando zona horaria a America/Mexico_City..."
+sudo ln -sf /usr/share/zoneinfo/America/Mexico_City /etc/localtime
+sudo dpkg-reconfigure -f noninteractive tzdata
+echo "✅ Zona horaria configurada a $(date)"
