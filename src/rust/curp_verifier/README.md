@@ -53,8 +53,6 @@ Este dígito sirve para validar que la CURP no tenga errores de captura.
 | Y        | 35    |
 | Z        | 36    |
 
-Este repositorio incluye pruebas para validar CURPs correctamente y garantiza que la validación esté alineada con el marco legal actual.
-
 ## ⚠️ Advertencia
 
 Este software se proporciona con fines prácticos y educativos únicamente. Su implementación del algoritmo de validación del dígito verificador de la CURP se basa en fuentes oficiales públicas, pero **no sustituye en ningún momento la funcionalidad ni validez del portal oficial del gobierno mexicano** disponible en: [https://www.gob.mx/curp/](https://www.gob.mx/curp/)

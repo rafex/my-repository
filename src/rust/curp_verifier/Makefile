@@ -42,6 +42,8 @@ package-deb: all
 	cp packaging/deb/amd64/control deb_pkg/DEBIAN/control
 	mkdir -p deb_pkg/usr/share/doc/curp-verifier
 	gzip -c README.md > deb_pkg/usr/share/doc/curp-verifier/README.md.gz
+	cp packaging/deb/amd64/changelog deb_pkg/usr/share/doc/curp-verifier/changelog
+	gzip -c packaging/deb/amd64/changelog > deb_pkg/usr/share/doc/curp-verifier/changelog.Debian.gz
 	dpkg-deb --build deb_pkg curp-verifier-amd64.deb
 
 # Empaqueta para ARM64
@@ -55,4 +57,31 @@ package-deb-arm64:
 	cp packaging/deb/arm64/control deb_pkg/DEBIAN/control
 	mkdir -p deb_pkg/usr/share/doc/curp-verifier
 	gzip -c README.md > deb_pkg/usr/share/doc/curp-verifier/README.md.gz
+	cp packaging/deb/arm64/changelog deb_pkg/usr/share/doc/curp-verifier/changelog
+	gzip -c packaging/deb/arm64/changelog > deb_pkg/usr/share/doc/curp-verifier/changelog.Debian.gz
 	dpkg-deb --build deb_pkg curp-verifier-arm64.deb
+
+changelog-deb:
+	@PACKAGE=curp-verifier; \
+	VERSION=0.1.0; \
+	EMAIL="rafex@rafex.dev"; \
+	FULLNAME="Raúl González"; \
+	DATE=$$(date -R); \
+	MESSAGE=$$(git log -1 --pretty=format:'  * %s'); \
+	echo "$$PACKAGE ($$VERSION-1) stable; urgency=medium\n\n$$MESSAGE\n\n -- $$FULLNAME <$$EMAIL>  $$DATE\n" > packaging/deb/amd64/changelog
+
+changelog-md:
+	@echo "# Changelog" > CHANGELOG.md
+	@echo "\n## [Unreleased]" >> CHANGELOG.md
+	@git log --pretty=format:'- %s (%h)' --no-merges -n 10 >> CHANGELOG.md
+	
+changelog-deb-dch:
+	@if [ -z "$(ARCH)" ]; then \
+		echo "❌ Debes especificar ARCH=amd64 o ARCH=arm64"; \
+		exit 1; \
+	fi
+	@if ! command -v dch >/dev/null 2>&1; then \
+		echo "❌ 'dch' no está instalado. Instala el paquete 'devscripts'."; \
+		exit 1; \
+	fi
+	dch --changelog packaging/deb/$(ARCH)/changelog
