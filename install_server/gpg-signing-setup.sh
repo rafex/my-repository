@@ -66,9 +66,9 @@ EOF
     for ARCH in $ARCHS; do
       DIR="$REPO_PATH/dists/stable/main/binary-$ARCH"
       [ -d "$DIR" ] && {
-        cd "$DIR"
-        dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
-        echo "✅ $ARCH: Packages.gz generado"
+        apt-ftparchive packages "$DIR" > "$DIR/Packages"
+        gzip -9c "$DIR/Packages" > "$DIR/Packages.gz"
+        echo "✅ $ARCH: Packages y Packages.gz generados"
       }
     done
 
