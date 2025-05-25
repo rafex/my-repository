@@ -44,7 +44,8 @@ package-deb: all
 	gzip -c README.md > deb_pkg/usr/share/doc/curp-verifier/README.md.gz
 	cp packaging/deb/amd64/changelog deb_pkg/usr/share/doc/curp-verifier/changelog
 	gzip -c packaging/deb/amd64/changelog > deb_pkg/usr/share/doc/curp-verifier/changelog.Debian.gz
-	dpkg-deb --build deb_pkg curp-verifier-amd64.deb
+	VERSION=$(shell grep '^Version:' packaging/deb/amd64/control | cut -d' ' -f2)
+	dpkg-deb --build deb_pkg curp-verifier_$(VERSION)_amd64.deb
 
 # Empaqueta para ARM64
 package-deb-arm64:
@@ -59,7 +60,8 @@ package-deb-arm64:
 	gzip -c README.md > deb_pkg/usr/share/doc/curp-verifier/README.md.gz
 	cp packaging/deb/arm64/changelog deb_pkg/usr/share/doc/curp-verifier/changelog
 	gzip -c packaging/deb/arm64/changelog > deb_pkg/usr/share/doc/curp-verifier/changelog.Debian.gz
-	dpkg-deb --build deb_pkg curp-verifier-arm64.deb
+	VERSION=$(shell grep '^Version:' packaging/deb/arm64/control | cut -d' ' -f2)
+	dpkg-deb --build deb_pkg curp-verifier_$(VERSION)_arm64.deb
 
 changelog-deb:
 	@PACKAGE=curp-verifier; \
