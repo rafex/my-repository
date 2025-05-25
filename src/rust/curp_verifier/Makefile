@@ -32,54 +32,39 @@ install:
 	install -m 0755 $(TARGET) $(if $(DESTDIR),$(DESTDIR)/usr/lib,/usr/lib)
 	install -m 0644 $(HEADER) $(if $(DESTDIR),$(DESTDIR)/usr/include,/usr/include)
 
-# Empaqueta el binario y el header en un .deb para amd64
-package-deb-amd64:
+# Empaqueta el binario y el header en un .deb para la arquitectura especificada
+package-deb:
+	@if [ -z "$(ARCH)" ]; then \
+		echo "❌ Debes especificar ARCH=amd64 o ARCH=arm64"; \
+		exit 1; \
+	fi
+	@echo "📦 Empaquetando para arquitectura: $(ARCH)"
+	@if [ "$(ARCH)" = "arm64" ]; then \
+		cargo build --release --target aarch64-unknown-linux-gnu; \
+		cp target/aarch64-unknown-linux-gnu/release/lib$(CRATE).$(EXT) deb_pkg/usr/lib/; \
+	else \
+		cargo build --release; \
+		cp $(TARGET) deb_pkg/usr/lib/; \
+	fi
 	mkdir -p deb_pkg/usr/lib
 	mkdir -p deb_pkg/usr/include
 	mkdir -p deb_pkg/DEBIAN
-	cp $(TARGET) deb_pkg/usr/lib/
 	cp $(HEADER) deb_pkg/usr/include/
-	cp packaging/deb/amd64/control deb_pkg/DEBIAN/control
+	cp packaging/deb/$(ARCH)/control deb_pkg/DEBIAN/control
 	mkdir -p deb_pkg/usr/share/doc/curp-verifier
 	gzip -c README.md > deb_pkg/usr/share/doc/curp-verifier/README.md.gz
-	cp packaging/deb/amd64/changelog deb_pkg/usr/share/doc/curp-verifier/changelog
-	gzip -c packaging/deb/amd64/changelog > deb_pkg/usr/share/doc/curp-verifier/changelog.Debian.gz
-	@VERSION=$$(grep '^Version:' packaging/deb/amd64/control | cut -d' ' -f2); \
+	cp packaging/deb/$(ARCH)/changelog deb_pkg/usr/share/doc/curp-verifier/changelog
+	gzip -c packaging/deb/$(ARCH)/changelog > deb_pkg/usr/share/doc/curp-verifier/changelog.Debian.gz
+	@VERSION=$$(grep '^Version:' packaging/deb/$(ARCH)/control | cut -d' ' -f2); \
 	SIZE=$$(du -ks deb_pkg/usr | cut -f1); \
-    DEPENDS=$$(ldd deb_pkg/usr/lib/libcurp_verifier.so | awk '{print $$1}' | grep -E '^lib' | while read -r lib; do dpkg -S "$$lib" 2>/dev/null | cut -d: -f1; done | sort -u | paste -sd "," -); \
-	# Añadir si no existen o reemplazar líneas
-    grep -q '^Installed-Size:' deb_pkg/DEBIAN/control && \
-        sed -i "s/^Installed-Size:.*/Installed-Size: $$SIZE/" deb_pkg/DEBIAN/control || \
-        echo "Installed-Size: $$SIZE" >> deb_pkg/DEBIAN/control; \
-    grep -q '^Depends:' deb_pkg/DEBIAN/control && \
-        sed -i "s/^Depends:.*/Depends: $$DEPENDS/" deb_pkg/DEBIAN/control || \
-        echo "Depends: $$DEPENDS" >> deb_pkg/DEBIAN/control; \
-	dpkg-deb --build deb_pkg curp-verifier_$${VERSION}_amd64.deb
-
-# Empaqueta para ARM64
-package-deb-arm64:
-	cargo build --release --target aarch64-unknown-linux-gnu
-	mkdir -p deb_pkg/usr/lib
-	mkdir -p deb_pkg/usr/include
-	mkdir -p deb_pkg/DEBIAN
-	cp target/aarch64-unknown-linux-gnu/release/lib$(CRATE).$(EXT) deb_pkg/usr/lib/
-	cp $(HEADER) deb_pkg/usr/include/
-	cp packaging/deb/arm64/control deb_pkg/DEBIAN/control
-	mkdir -p deb_pkg/usr/share/doc/curp-verifier
-	gzip -c README.md > deb_pkg/usr/share/doc/curp-verifier/README.md.gz
-	cp packaging/deb/arm64/changelog deb_pkg/usr/share/doc/curp-verifier/changelog
-	gzip -c packaging/deb/arm64/changelog > deb_pkg/usr/share/doc/curp-verifier/changelog.Debian.gz
-	@VERSION=$$(grep '^Version:' packaging/deb/arm64/control | cut -d' ' -f2); \
-	SIZE=$$(du -ks deb_pkg/usr | cut -f1); \
-    DEPENDS=$$(ldd deb_pkg/usr/lib/libcurp_verifier.so | awk '{print $$1}' | grep -E '^lib' | while read -r lib; do dpkg -S "$$lib" 2>/dev/null | cut -d: -f1; done | sort -u | paste -sd "," -); \
-	# Añadir si no existen o reemplazar líneas
-    grep -q '^Installed-Size:' deb_pkg/DEBIAN/control && \
-        sed -i "s/^Installed-Size:.*/Installed-Size: $$SIZE/" deb_pkg/DEBIAN/control || \
-        echo "Installed-Size: $$SIZE" >> deb_pkg/DEBIAN/control; \
-    grep -q '^Depends:' deb_pkg/DEBIAN/control && \
-        sed -i "s/^Depends:.*/Depends: $$DEPENDS/" deb_pkg/DEBIAN/control || \
-        echo "Depends: $$DEPENDS" >> deb_pkg/DEBIAN/control; \
-	dpkg-deb --build deb_pkg curp-verifier_$${VERSION}_arm64.deb
+	DEPENDS=$$(ldd deb_pkg/usr/lib/libcurp_verifier.so | awk '{print $$1}' | grep -E '^lib' | while read -r lib; do dpkg -S "$$lib" 2>/dev/null | cut -d: -f1; done | sort -u | paste -sd "," -); \
+	grep -q '^Installed-Size:' deb_pkg/DEBIAN/control && \
+		sed -i "s/^Installed-Size:.*/Installed-Size: $$SIZE/" deb_pkg/DEBIAN/control || \
+		echo "Installed-Size: $$SIZE" >> deb_pkg/DEBIAN/control; \
+	grep -q '^Depends:' deb_pkg/DEBIAN/control && \
+		sed -i "s/^Depends:.*/Depends: $$DEPENDS/" deb_pkg/DEBIAN/control || \
+		echo "Depends: $$DEPENDS" >> deb_pkg/DEBIAN/control; \
+	dpkg-deb --build deb_pkg curp-verifier_$${VERSION}_$(ARCH).deb
 
 changelog-deb:
 	@PACKAGE=curp-verifier; \
