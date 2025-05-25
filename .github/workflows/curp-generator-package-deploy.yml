@@ -1,0 +1,102 @@
+name: Build and Deploy Debian Package CURP Generator
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "src/rust/curp_generator/**"
+      - ".github/workflows/curp-generator-package-deploy.yml"
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-amd64:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout repo
+        uses: actions/checkout@v3
+
+      - name: 🦀 Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 📦 Install packaging tools
+        run: sudo apt update && sudo apt install -y dpkg-dev
+
+      - name: 🛠 Build Rust library
+        working-directory: src/rust/curp_generator
+        run: make all
+
+      - name: 📦 Build .deb package
+        working-directory: src/rust/curp_generator
+        run: |
+          make changelog-deb ARCH=amd64
+          make package-deb ARCH=amd64
+          ls -lah
+          mv curp-verifier_*_amd64.deb $GITHUB_WORKSPACE/
+
+      - name: 🚀 Upload to server using scp
+        run: |
+          echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
+          chmod 600 id_github_gactions
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./curp-verifier_*_amd64.deb ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-amd64/
+
+      - name: 🔄 Regenerate Packages.gz using ssh
+        run: |
+          echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
+          chmod 600 id_github_gactions
+          ssh -i id_github_gactions -o StrictHostKeyChecking=no ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }} \
+            "bash -c 'cd /srv/repo/debian && \
+            apt-ftparchive packages dists/stable/main/binary-amd64 > dists/stable/main/binary-amd64/Packages && \
+            gzip -9c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz'"
+
+  build-and-deploy-arm64:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout repo
+        uses: actions/checkout@v3
+
+      - name: 🦀 Install Rust + ARM target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu
+
+      - name: 🧰 Install cross-compiling tools
+        run: sudo apt update && sudo apt install -y dpkg-dev gcc-aarch64-linux-gnu
+
+      - name: 🛠 Build Rust library for ARM64
+        working-directory: src/rust/curp_generator
+        run: |
+          cargo build --release --target aarch64-unknown-linux-gnu
+          mkdir -p target/release
+          cp target/aarch64-unknown-linux-gnu/release/libcurp_generator.* target/release/
+
+      - name: 📥 Install cbindgen
+        run: cargo install cbindgen
+
+      - name: 🧾 Generate header
+        working-directory: src/rust/curp_generator
+        run: make cbindgen
+
+      - name: 📦 Build .deb package for ARM64
+        working-directory: src/rust/curp_generator
+        run: |
+          make changelog-deb ARCH=arm64
+          make package-deb ARCH=arm64
+          ls -lah
+          mv curp-verifier_*_arm64.deb $GITHUB_WORKSPACE/
+
+      - name: 🚀 Upload ARM64 package to server using scp
+        run: |
+          echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
+          chmod 600 id_github_gactions
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./curp-verifier_*_arm64.deb ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-arm64/
+
+      - name: 🔄 Regenerate Packages.gz using ssh
+        run: |
+          echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
+          chmod 600 id_github_gactions
+          ssh -i id_github_gactions -o StrictHostKeyChecking=no ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }} \
+            "bash -c 'cd /srv/repo/debian && \
+            apt-ftparchive packages dists/stable/main/binary-arm64 > dists/stable/main/binary-arm64/Packages && \
+            gzip -9c dists/stable/main/binary-arm64/Packages > dists/stable/main/binary-arm64/Packages.gz'"
