@@ -23,3 +23,11 @@ Para información general sobre licencias de código abierto, puedes consultar:
 
 ---
 ¡Hecho para facilitarme la vida!
+
+```bash
+#curl -fsSL https://repository.rafex.app/rafex.gpg | sudo gpg --dearmor -o /usr/share/keyrings/rafex-archive-keyring.gpg
+#echo "deb [signed-by=/usr/share/keyrings/rafex-archive-keyring.gpg] https://repository.rafex.app/debian stable main" | sudo tee /etc/apt/sources.list.d/rafex.list > /dev/null
+echo "deb [trusted=yes] https://repository.rafex.app/debian stable main" > /etc/apt/sources.list.d/rafex.list
+sudo apt update
+sudo apt install curp-verifier
+```

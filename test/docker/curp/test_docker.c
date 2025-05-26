@@ -29,11 +29,11 @@ int main() {
     }
 
     struct DatosPersonales persona = {
-        .nombre = "Concepción",
-        .primer_apellido = "Salgado",
-        .segundo_apellido = "Briseño",
-        .sexo = 'M',
-        .fecha_nacimiento = "1956-06-26",
+        .nombre = "RAUL EDUARDO",
+        .primer_apellido = "GONZALEZ",
+        .segundo_apellido = "ARGOTE",
+        .sexo = 'H',
+        .fecha_nacimiento = "1988-11-03",
         .entidad = "DF"
     };
 
