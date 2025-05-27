@@ -13,7 +13,7 @@ on:
 jobs:
   build-and-deploy-amd64:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, 'amd64') || contains(join(github.event.commits.*.modified, ','), 'src/rust/curp_generator/packaging/deb/amd64/')
+    # if: contains(github.event.head_commit.message, 'amd64') || contains(join(github.event.commits.*.modified, ','), 'src/rust/curp_generator/packaging/deb/amd64/')
 
     steps:
       - name: 🧾 Checkout repo
@@ -74,7 +74,7 @@ jobs:
 
   build-and-deploy-arm64:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, 'arm64') || contains(join(github.event.commits.*.modified, ','), 'src/rust/curp_generator/packaging/deb/arm64/')
+    # if: contains(github.event.head_commit.message, 'arm64') || contains(join(github.event.commits.*.modified, ','), 'src/rust/curp_generator/packaging/deb/arm64/')
 
     steps:
       - name: 🧾 Checkout repo
