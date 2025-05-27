@@ -3,7 +3,7 @@ Version: 0.1.1-2+rafex
 Architecture: arm64
 Maintainer: Raúl González <rafex@rafex.dev>
 Installed-Size: 200
-Depends: libc6 (>= 2.28)
+Depends: ${shlibs:Depends}
 Section: libs
 Priority: optional
 Homepage: https://github.com/rafex/my-repository/tree/main/src/rust/curp_generator

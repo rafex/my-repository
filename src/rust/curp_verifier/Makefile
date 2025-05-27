@@ -60,7 +60,7 @@ package-deb:
 	gzip -c packaging/deb/$(ARCH)/changelog > deb_pkg/usr/share/doc/$(NAME)/changelog.Debian.gz
 	@VERSION=$$(grep '^Version:' packaging/deb/$(ARCH)/control | cut -d' ' -f2); \
 	SIZE=$$(du -ks deb_pkg/usr | cut -f1); \
-	DEPENDS=$$(ldd deb_pkg/usr/lib/libcurp_verifier.so | awk '{print $$1}' | grep -E '^lib' | while read -r lib; do dpkg -S "$$lib" 2>/dev/null | cut -d: -f1; done | sort -u | paste -sd "," -); \
+	DEPENDS=$$(dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n 's/^shlibs:Depends=//p'); \
 	grep -q '^Installed-Size:' deb_pkg/DEBIAN/control && \
 		sed -i "s/^Installed-Size:.*/Installed-Size: $$SIZE/" deb_pkg/DEBIAN/control || \
 		echo "Installed-Size: $$SIZE" >> deb_pkg/DEBIAN/control; \
