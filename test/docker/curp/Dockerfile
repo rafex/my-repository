@@ -5,7 +5,8 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     ca-certificates \
     gcc && \
-    echo "deb [trusted=yes] https://repository.rafex.app/debian stable main" > /etc/apt/sources.list.d/rafex.list && \
+    curl -fsSL https://repository.rafex.app/pubkey.asc | gpg --dearmor -o /usr/share/keyrings/rafex.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/rafex.gpg] https://repository.rafex.app/debian stable main" > /etc/apt/sources.list.d/rafex.list && \
     apt-get update && \
     apt-get install -y curp-verifier curp-generator && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
