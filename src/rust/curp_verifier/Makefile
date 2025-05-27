@@ -59,10 +59,9 @@ package-deb:
 	cp $(HEADER) deb_pkg/usr/include/
 
 	mkdir -p packaging/deb/$(ARCH)
-	@sh -c '\
-	VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d\" -f2); \
+	@VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
 	FULL_VERSION=$${VERSION}-$(REVISION); \
-	DEPENDS=$$(dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n "s/^shlibs:Depends=//p"); \
+	DEPENDS=$$(dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n 's/^shlibs:Depends=//p'); \
 	FINAL=packaging/deb/$(ARCH)/control; \
 	cp $(TEMPLATE) $$FINAL; \
 	sed -i "s|{{PACKAGE}}|$(NAME)|g; \
@@ -79,8 +78,7 @@ package-deb:
 	echo "📄 Control final generado:" && cat $$FINAL; \
 	SIZE=$$(du -ks deb_pkg/usr | cut -f1); \
 	echo "Installed-Size: $$SIZE" >> deb_pkg/DEBIAN/control; \
-	dpkg-deb --build deb_pkg $(NAME)_$$FULL_VERSION_$(ARCH).deb \
-	'
+	dpkg-deb --build deb_pkg $(NAME)_$$FULL_VERSION_$(ARCH).deb
 
 changelog-deb:
 	@PACKAGE=$(NAME); \
