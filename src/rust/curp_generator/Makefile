@@ -60,33 +60,30 @@ package-deb:
 
 	cp $(TEMPLATE) $(FINAL)
 
-	VERSION=$$(grep '^version' Cargo.toml | head -n1 | cut -d'"' -f2); \
-	FULL_VERSION="$$VERSION-$(REVISION)"; \
-	DEPENDS=$$(dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n 's/^shlibs:Depends=//p'); \
-
-	sed -i "s|{{PACKAGE}}|$(NAME)|g; \
-	        s|{{VERSION}}|$$FULL_VERSION|g; \
-	        s|{{ARCHITECTURE}}|$(ARCH)|g; \
-	        s|{{MAINTAINER}}|Raúl González <rafex@rafex.dev>|g; \
-	        s|{{PRIORITY}}|optional|g; \
-	        s|{{SECTION}}|libs|g; \
-	        s|{{RUNTIME_DEPENDENCIES}}|$$DEPENDS|g; \
-	        s|{{HOMEPAGE}}|https://github.com/rafex/my-repository/tree/main/src/rust/$(CRATE)|g; \
-	        s|{{SUMMARY}}|Biblioteca Rust para generar CURP|g; \
-	        s|{{DESCRIPTION}}|Biblioteca ligera desarrollada en Rust para generar CURP conforme al instructivo oficial del RENAPO.|g" $(FINAL)
-
-	cp $(FINAL) deb_pkg/DEBIAN/control
-	@echo "📄 Control final generado:" && cat $(FINAL)
+	{ VERSION=$$(grep '^version' Cargo.toml | head -n1 | cut -d'"' -f2); \
+	  FULL_VERSION="$$VERSION-$(REVISION)"; \
+	  DEPENDS=$$(dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n 's/^shlibs:Depends=//p'); \
+	  sed -i "s|{{PACKAGE}}|$(NAME)|g; \
+	          s|{{VERSION}}|$$FULL_VERSION|g; \
+	          s|{{ARCHITECTURE}}|$(ARCH)|g; \
+	          s|{{MAINTAINER}}|Raúl González <rafex@rafex.dev>|g; \
+	          s|{{PRIORITY}}|optional|g; \
+	          s|{{SECTION}}|libs|g; \
+	          s|{{RUNTIME_DEPENDENCIES}}|$$DEPENDS|g; \
+	          s|{{HOMEPAGE}}|https://github.com/rafex/my-repository/tree/main/src/rust/$(CRATE)|g; \
+	          s|{{SUMMARY}}|Biblioteca Rust para generar CURP|g; \
+	          s|{{DESCRIPTION}}|Biblioteca ligera desarrollada en Rust para generar CURP conforme al instructivo oficial del RENAPO.|g" $(FINAL); \
+	  cp $(FINAL) deb_pkg/DEBIAN/control; \
+	  echo "📄 Control final generado:" && cat $(FINAL); \
+	  SIZE=$$(du -ks deb_pkg/usr | cut -f1); \
+	  echo "Installed-Size: $$SIZE" >> deb_pkg/DEBIAN/control; \
+	  dpkg-deb --build deb_pkg $(NAME)_$$FULL_VERSION_$(ARCH).deb; }
 
 	mkdir -p deb_pkg/usr/share/doc/$(NAME)
 	gzip -c README.md > deb_pkg/usr/share/doc/$(NAME)/README.md.gz
 	cp packaging/deb/$(ARCH)/changelog deb_pkg/usr/share/doc/$(NAME)/changelog
 	gzip -c packaging/deb/$(ARCH)/changelog > deb_pkg/usr/share/doc/$(NAME)/changelog.Debian.gz
 
-	SIZE=$(shell du -ks deb_pkg/usr | cut -f1)
-	echo "Installed-Size: $(SIZE)" >> deb_pkg/DEBIAN/control
-
-	dpkg-deb --build deb_pkg $(NAME)_$$FULL_VERSION_$(ARCH).deb
 
 changelog-deb:
 	@PACKAGE=$(NAME); \

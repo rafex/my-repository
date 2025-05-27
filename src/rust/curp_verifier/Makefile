@@ -58,7 +58,9 @@ package-deb:
 	mkdir -p deb_pkg/DEBIAN
 	cp $(HEADER) deb_pkg/usr/include/
 
-	cp $(TEMPLATE) $(FINAL)
+	mkdir -p packaging/deb/$(ARCH)
+	FINAL=packaging/deb/$(ARCH)/control
+	cp $(TEMPLATE) $$FINAL
 
 	{ VERSION=$$(grep '^version' Cargo.toml | head -n1 | cut -d'"' -f2); \
 	  FULL_VERSION="$$VERSION-$(REVISION)"; \
@@ -72,9 +74,9 @@ package-deb:
 	          s|{{RUNTIME_DEPENDENCIES}}|$$DEPENDS|g; \
 	          s|{{HOMEPAGE}}|https://github.com/rafex/my-repository/tree/main/src/rust/$(CRATE)|g; \
 	          s|{{SUMMARY}}|Biblioteca Rust para validar CURP|g; \
-	          s|{{DESCRIPTION}}|Biblioteca ligera desarrollada en Rust para verificar CURP conforme al instructivo oficial del RENAPO.|g" $(FINAL); \
-	  cp $(FINAL) deb_pkg/DEBIAN/control; \
-	  echo "📄 Control final generado:" && cat $(FINAL); \
+	          s|{{DESCRIPTION}}|Biblioteca ligera desarrollada en Rust para verificar CURP conforme al instructivo oficial del RENAPO.|g" $$FINAL; \
+	  cp $$FINAL deb_pkg/DEBIAN/control; \
+	  echo "📄 Control final generado:" && cat $$FINAL; \
 	  SIZE=$$(du -ks deb_pkg/usr | cut -f1); \
 	  echo "Installed-Size: $$SIZE" >> deb_pkg/DEBIAN/control; \
 	  dpkg-deb --build deb_pkg $(NAME)_$$FULL_VERSION_$(ARCH).deb; }
