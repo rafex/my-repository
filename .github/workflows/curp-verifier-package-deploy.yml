@@ -38,7 +38,6 @@ jobs:
           mv curp-verifier_*_amd64.deb $GITHUB_WORKSPACE/
 
       - name: 🔍 Lint package with lintian
-        working-directory: src/rust/curp_verifier
         run: make lint ARCH=amd64
 
       - name: 🧮 Generate SHA256 checksum
