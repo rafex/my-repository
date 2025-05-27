@@ -60,7 +60,7 @@ package-deb:
 
 	mkdir -p packaging/deb/$(ARCH)
 	{FINAL=packaging/deb/$(ARCH)/control
-	  cp $(TEMPLATE) $$FINAL
+	  cp $(TEMPLATE) $FINAL
 	  VERSION=$$(grep '^version' Cargo.toml | head -n1 | cut -d'"' -f2); \
 	  FULL_VERSION=$${VERSION}-$(REVISION); \
 	  DEPENDS=$$(dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n 's/^shlibs:Depends=//p'); \
