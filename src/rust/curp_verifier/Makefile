@@ -63,7 +63,7 @@ package-deb:
 	cp $(TEMPLATE) $$FINAL
 
 	{ VERSION=$$(grep '^version' Cargo.toml | head -n1 | cut -d'"' -f2); \
-	  FULL_VERSION="$$VERSION-$(REVISION)"; \
+	  FULL_VERSION=$${VERSION}-$(REVISION); \
 	  DEPENDS=$$(dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n 's/^shlibs:Depends=//p'); \
 	  sed -i "s|{{PACKAGE}}|$(NAME)|g; \
 	          s|{{VERSION}}|$$FULL_VERSION|g; \
@@ -128,3 +128,11 @@ lint:
 		echo "❌ No se encontró el paquete $$FILE. Ejecuta primero 'make package-deb ARCH=...'"; \
 		exit 1; \
 	fi
+docker-build:
+	@if [ -z "$(ARCH)" ]; then \
+		echo "❌ Debes especificar ARCH=amd64 o ARCH=arm64"; \
+		exit 1; \
+	fi
+	NO_CACHE_FLAG=$$( [ "$(NO_CACHE)" = "true" ] && echo "--no-cache" ); \
+	docker buildx build --platform linux/$(ARCH) $$NO_CACHE_FLAG --build-arg ARCH=$(ARCH) -t curp-verifier-deb-builder -f Dockerfile --load --progress plain .
+	docker run --rm -v "$$(pwd)/output:/app/src/rust/curp_verifier" curp-verifier-deb-builder
