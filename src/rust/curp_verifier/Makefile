@@ -86,7 +86,7 @@ package-deb:
 	echo "📄 Control final generado:" && cat deb_pkg/DEBIAN/control; \
 	dpkg-deb --build deb_pkg "$(NAME)_$${FULL_VERSION}_$${ARCH}.deb"
 
-	@echo "📦 Paquete generado: $(NAME)_$${FULL_VERSION}_$${ARCH}.deb"
+	@echo '📦 Paquete generado: $(NAME)_$${FULL_VERSION}_$${ARCH}.deb'
 
 
 changelog-deb:
@@ -128,7 +128,7 @@ lint:
 	fi
 	@VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
 	FULL_VERSION=$${VERSION}-$(REVISION); \
-	FILE="$(NAME)_$$FULL_VERSION_$(ARCH).deb"; \
+	FILE="$(NAME)_$${FULL_VERSION}_$${ARCH}.deb"; \
 	if [ -f $$FILE ]; then \
 		echo "🔍 Ejecutando lintian sobre $$FILE"; \
 		lintian $$FILE; \
