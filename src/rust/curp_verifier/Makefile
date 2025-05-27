@@ -59,8 +59,7 @@ package-deb:
 	cp $(HEADER) deb_pkg/usr/include/
 
 	mkdir -p packaging/deb/$(ARCH)
-	{
-	  FINAL=packaging/deb/$(ARCH)/control
+	{FINAL=packaging/deb/$(ARCH)/control
 	  cp $(TEMPLATE) $$FINAL
 	  VERSION=$$(grep '^version' Cargo.toml | head -n1 | cut -d'"' -f2); \
 	  FULL_VERSION=$${VERSION}-$(REVISION); \
@@ -79,8 +78,7 @@ package-deb:
 	  echo "📄 Control final generado:" && cat $$FINAL; \
 	  SIZE=$$(du -ks deb_pkg/usr | cut -f1); \
 	  echo "Installed-Size: $$SIZE" >> deb_pkg/DEBIAN/control; \
-	  dpkg-deb --build deb_pkg $(NAME)_$$FULL_VERSION_$(ARCH).deb; 
-	}
+	  dpkg-deb --build deb_pkg $(NAME)_$$FULL_VERSION_$(ARCH).deb;}
 
 changelog-deb:
 	@PACKAGE=$(NAME); \
