@@ -8,8 +8,7 @@ TARGET=target/release/lib$(CRATE).$(EXT)
 HEADER=include/$(CRATE).h
 TEMPLATE=packaging/deb/control
 REVISION=2+rafex
-FINAL=packaging/deb/$(ARCH)/control
-FULL_VERSION=$(VERSION)-$(REVISION)
+# FULL_VERSION=$(VERSION)-$(REVISION)  # Eliminado según instrucciones
 
 .PHONY: all build clean cbindgen install install-tools
 
@@ -61,9 +60,9 @@ package-deb:
 
 	cp $(TEMPLATE) $(FINAL)
 
-	VERSION=$(shell grep '^version' Cargo.toml | head -n1 | cut -d'"' -f2); \
-	FULL_VERSION=$$VERSION-$(REVISION); \
-	DEPENDS=$(shell dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n 's/^shlibs:Depends=//p'); \
+	VERSION=$$(grep '^version' Cargo.toml | head -n1 | cut -d'"' -f2); \
+	FULL_VERSION="$$VERSION-$(REVISION)"; \
+	DEPENDS=$$(dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n 's/^shlibs:Depends=//p'); \
 
 	sed -i "s|{{PACKAGE}}|$(NAME)|g; \
 	        s|{{VERSION}}|$$FULL_VERSION|g; \
@@ -71,7 +70,7 @@ package-deb:
 	        s|{{MAINTAINER}}|Raúl González <rafex@rafex.dev>|g; \
 	        s|{{PRIORITY}}|optional|g; \
 	        s|{{SECTION}}|libs|g; \
-	        s|{{RUNTIME_DEPENDENCIES}}|$(DEPENDS)|g; \
+	        s|{{RUNTIME_DEPENDENCIES}}|$$DEPENDS|g; \
 	        s|{{HOMEPAGE}}|https://github.com/rafex/my-repository/tree/main/src/rust/$(CRATE)|g; \
 	        s|{{SUMMARY}}|Biblioteca Rust para validar CURP|g; \
 	        s|{{DESCRIPTION}}|Biblioteca ligera desarrollada en Rust para verificar CURP conforme al instructivo oficial del RENAPO.|g" $(FINAL)
