@@ -79,6 +79,29 @@ sudo apt install curp-verifier
 
 ![Prueba de instalación en Docker](assets/test.png)
 
+## Verificación opcional de integridad y autenticidad
+
+Si descargaste el `.deb` directamente, puedes verificar su integridad y firma:
+
+```bash
+curl -O https://repository.rafex.app/debian/curp-verifier_0.1.1-1+rafex_amd64.deb
+curl -O https://repository.rafex.app/debian/curp-verifier_0.1.1-1+rafex_amd64.deb.sig
+curl -O https://repository.rafex.app/pubkey.asc
+
+# Importar la clave pública
+gpg --import pubkey.asc
+
+# Verificar la firma
+gpg --verify curp-verifier_0.1.1-1+rafex_amd64.deb.sig curp-verifier_0.1.1-1+rafex_amd64.deb
+```
+
+También puedes verificar el hash SHA256 (si está disponible):
+
+```bash
+curl -O https://repository.rafex.app/debian/curp-verifier_0.1.1-1+rafex_amd64.deb.sha256
+sha256sum -c curp-verifier_0.1.1-1+rafex_amd64.deb.sha256
+```
+
 ### Ejemplo en C
 
 ```c
