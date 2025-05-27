@@ -61,19 +61,20 @@ package-deb:
 
 	cp $(TEMPLATE) $(FINAL)
 
-	DEPENDS=$(shell dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n 's/^shlibs:Depends=//p')
-	VERSION=$(shell grep '^version' Cargo.toml | head -n1 | cut -d'"' -f2)
+	VERSION=$(shell grep '^version' Cargo.toml | head -n1 | cut -d'"' -f2); \
+	FULL_VERSION=$$VERSION-$(REVISION); \
+	DEPENDS=$(shell dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n 's/^shlibs:Depends=//p'); \
 
 	sed -i "s|{{PACKAGE}}|$(NAME)|g; \
-	        s|{{VERSION}}|$(FULL_VERSION)|g; \
-	         s|{{ARCHITECTURE}}|$(ARCH)|g; \
-	         s|{{MAINTAINER}}|Raúl González <rafex@rafex.dev>|g; \
-	         s|{{PRIORITY}}|optional|g; \
-	         s|{{SECTION}}|libs|g; \
-	         s|{{RUNTIME_DEPENDENCIES}}|$(DEPENDS)|g; \
-	         s|{{HOMEPAGE}}|https://github.com/rafex/my-repository/tree/main/src/rust/$(CRATE)|g; \
-	         s|{{SUMMARY}}|Biblioteca Rust para validar CURP|g; \
-	         s|{{DESCRIPTION}}|Biblioteca ligera desarrollada en Rust para verificar CURP conforme al instructivo oficial del RENAPO.|g" $(FINAL)
+	        s|{{VERSION}}|$$FULL_VERSION|g; \
+	        s|{{ARCHITECTURE}}|$(ARCH)|g; \
+	        s|{{MAINTAINER}}|Raúl González <rafex@rafex.dev>|g; \
+	        s|{{PRIORITY}}|optional|g; \
+	        s|{{SECTION}}|libs|g; \
+	        s|{{RUNTIME_DEPENDENCIES}}|$(DEPENDS)|g; \
+	        s|{{HOMEPAGE}}|https://github.com/rafex/my-repository/tree/main/src/rust/$(CRATE)|g; \
+	        s|{{SUMMARY}}|Biblioteca Rust para validar CURP|g; \
+	        s|{{DESCRIPTION}}|Biblioteca ligera desarrollada en Rust para verificar CURP conforme al instructivo oficial del RENAPO.|g" $(FINAL)
 
 	cp $(FINAL) deb_pkg/DEBIAN/control
 	@echo "📄 Control final generado:" && cat $(FINAL)
@@ -86,7 +87,7 @@ package-deb:
 	SIZE=$(shell du -ks deb_pkg/usr | cut -f1)
 	echo "Installed-Size: $(SIZE)" >> deb_pkg/DEBIAN/control
 
-	dpkg-deb --build deb_pkg $(NAME)_$(FULL_VERSION)_$(ARCH).deb
+	dpkg-deb --build deb_pkg $(NAME)_$$FULL_VERSION_$(ARCH).deb
 
 changelog-deb:
 	@PACKAGE=$(NAME); \
