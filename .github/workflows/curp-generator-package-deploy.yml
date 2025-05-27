@@ -23,7 +23,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: 📦 Install packaging tools
-        run: sudo apt update && sudo apt install -y dpkg-dev
+        run: sudo apt update && sudo apt install -y dpkg-dev lintian
 
       - name: 🛠 Build Rust library
         working-directory: src/rust/curp_generator
@@ -36,6 +36,10 @@ jobs:
           make package-deb ARCH=amd64
           ls -lah
           mv curp-generator_*_amd64.deb $GITHUB_WORKSPACE/
+
+      - name: 🔍 Lint package with lintian
+        working-directory: src/rust/curp_generator
+        run: make lint ARCH=amd64
 
       - name: 🧮 Generate SHA256 checksum
         run: |
@@ -115,6 +119,10 @@ jobs:
           make package-deb ARCH=arm64
           ls -lah
           mv curp-generator_*_arm64.deb $GITHUB_WORKSPACE/
+
+      - name: 🔍 Lint package with lintian
+        working-directory: src/rust/curp_generator
+        run: make lint ARCH=arm64
 
       - name: 🧮 Generate SHA256 checksum
         run: |

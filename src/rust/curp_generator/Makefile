@@ -50,24 +50,44 @@ package-deb:
 		cargo build --release; \
 		cp $(TARGET) deb_pkg/usr/lib/; \
 	fi
+
 	mkdir -p deb_pkg/usr/include
 	mkdir -p deb_pkg/DEBIAN
 	cp $(HEADER) deb_pkg/usr/include/
-	cp packaging/deb/$(ARCH)/control deb_pkg/DEBIAN/control
+
+	TEMPLATE=packaging/deb/control
+	FINAL=packaging/deb/$(ARCH)/control
+	mkdir -p packaging/deb/$(ARCH)
+	cp $(TEMPLATE) $(FINAL)
+
+	DEPENDS=$(shell dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n 's/^shlibs:Depends=//p')
+	VERSION=$(shell grep '^version' Cargo.toml | head -n1 | cut -d'"' -f2)
+	REVISION=2+rafex
+	FULL_VERSION=$(VERSION)-$(REVISION)
+
+	sed -i "s|{{PACKAGE}}|$(NAME)|g; \
+	        s|{{VERSION}}|$(FULL_VERSION)|g; \
+	        s|{{ARCHITECTURE}}|$(ARCH)|g; \
+	        s|{{MAINTAINER}}|Raúl González <rafex@rafex.dev>|g; \
+	        s|{{PRIORITY}}|optional|g; \
+	        s|{{SECTION}}|libs|g; \
+	        s|{{RUNTIME_DEPENDENCIES}}|$(DEPENDS)|g; \
+	        s|{{HOMEPAGE}}|https://github.com/rafex/my-repository/tree/main/src/rust/$(CRATE)|g; \
+	        s|{{SUMMARY}}|Biblioteca Rust para generar CURP|g; \
+	        s|{{DESCRIPTION}}|Biblioteca ligera desarrollada en Rust para generar CURP conforme al instructivo oficial del RENAPO.|g" $(FINAL)
+
+	cp $(FINAL) deb_pkg/DEBIAN/control
+	@echo "📄 Control final generado:" && cat $(FINAL)
+
 	mkdir -p deb_pkg/usr/share/doc/$(NAME)
 	gzip -c README.md > deb_pkg/usr/share/doc/$(NAME)/README.md.gz
 	cp packaging/deb/$(ARCH)/changelog deb_pkg/usr/share/doc/$(NAME)/changelog
 	gzip -c packaging/deb/$(ARCH)/changelog > deb_pkg/usr/share/doc/$(NAME)/changelog.Debian.gz
-	@VERSION=$$(grep '^Version:' packaging/deb/$(ARCH)/control | cut -d' ' -f2); \
-	SIZE=$$(du -ks deb_pkg/usr | cut -f1); \
-	DEPENDS=$$(dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n 's/^shlibs:Depends=//p'); \
-	grep -q '^Installed-Size:' deb_pkg/DEBIAN/control && \
-		sed -i "s/^Installed-Size:.*/Installed-Size: $$SIZE/" deb_pkg/DEBIAN/control || \
-		echo "Installed-Size: $$SIZE" >> deb_pkg/DEBIAN/control; \
-	grep -q '^Depends:' deb_pkg/DEBIAN/control && \
-		sed -i "s/^Depends:.*/Depends: $$DEPENDS/" deb_pkg/DEBIAN/control || \
-		echo "Depends: $$DEPENDS" >> deb_pkg/DEBIAN/control; \
-	dpkg-deb --build deb_pkg $(NAME)_$${VERSION}_$(ARCH).deb
+
+	SIZE=$(shell du -ks deb_pkg/usr | cut -f1)
+	echo "Installed-Size: $(SIZE)" >> deb_pkg/DEBIAN/control
+
+	dpkg-deb --build deb_pkg $(NAME)_$(FULL_VERSION)_$(ARCH).deb
 
 changelog-deb:
 	@PACKAGE=$(NAME); \
@@ -99,3 +119,20 @@ update-readme-version:
 	@VERSION=$$(grep '^Version:' packaging/deb/amd64/control | cut -d' ' -f2); \
 	sed -i.bak -E "s|^> Versión actual: .*|> Versión actual: $$VERSION|" README.md; \
 	rm -f README.md.bak
+
+lint:
+	@if [ -z "$(ARCH)" ]; then \
+		echo "❌ Debes especificar ARCH=amd64 o ARCH=arm64"; \
+		exit 1; \
+	fi
+	@VERSION=$(shell grep '^version' Cargo.toml | head -n1 | cut -d'"' -f2); \
+	REVISION=2+rafex; \
+	FULL_VERSION=$$VERSION-$$REVISION; \
+	FILE=$(NAME)_$$FULL_VERSION_$(ARCH).deb; \
+	if [ -f $$FILE ]; then \
+		echo "🔍 Ejecutando lintian sobre $$FILE"; \
+		lintian $$FILE; \
+	else \
+		echo "❌ No se encontró el paquete $$FILE. Ejecuta primero 'make package-deb ARCH=...'"; \
+		exit 1; \
+	fi
