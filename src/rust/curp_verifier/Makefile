@@ -6,6 +6,10 @@ NAME=curp-verifier
 EXT=$(shell uname | grep -q Darwin && echo dylib || echo so)
 TARGET=target/release/lib$(CRATE).$(EXT)
 HEADER=include/$(CRATE).h
+TEMPLATE=packaging/deb/control
+REVISION=2+rafex
+FINAL=packaging/deb/$(ARCH)/control
+FULL_VERSION=$(VERSION)-$(REVISION)
 
 .PHONY: all build clean cbindgen install install-tools
 
@@ -55,15 +59,10 @@ package-deb:
 	mkdir -p deb_pkg/DEBIAN
 	cp $(HEADER) deb_pkg/usr/include/
 
-	TEMPLATE=packaging/deb/control
-	FINAL=packaging/deb/$(ARCH)/control
-	mkdir -p packaging/deb/$(ARCH)
 	cp $(TEMPLATE) $(FINAL)
 
 	DEPENDS=$(shell dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n 's/^shlibs:Depends=//p')
 	VERSION=$(shell grep '^version' Cargo.toml | head -n1 | cut -d'"' -f2)
-	REVISION=2+rafex
-	FULL_VERSION=$(VERSION)-$(REVISION)
 
 	sed -i "s|{{PACKAGE}}|$(NAME)|g; \
 	        s|{{VERSION}}|$(FULL_VERSION)|g; \
