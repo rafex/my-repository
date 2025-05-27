@@ -1,4 +1,4 @@
 mod curp_generator;
-mod call_extern;
+mod ffi;
 
-pub use crate::call_extern::generar_curp_c;
+pub use crate::ffi::generar_curp_c;

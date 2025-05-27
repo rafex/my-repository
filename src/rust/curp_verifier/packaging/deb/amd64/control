@@ -1,5 +1,5 @@
 Package: curp-verifier
-Version: 0.1.1-1+rafex
+Version: 0.1.1-2+rafex
 Architecture: amd64
 Maintainer: Raúl González <rafex@rafex.dev>
 Installed-Size: 200

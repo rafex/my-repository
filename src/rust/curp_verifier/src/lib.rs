@@ -1,4 +1,4 @@
 mod curp_verifier;
-mod call_extern;
+mod ffi;
 
-pub use crate::call_extern::verify_curp;
+pub use crate::ffi::verify_curp;
