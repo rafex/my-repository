@@ -57,8 +57,13 @@ package-deb:
 	mkdir -p deb_pkg/usr/include
 	mkdir -p deb_pkg/DEBIAN
 	cp $(HEADER) deb_pkg/usr/include/
-
 	mkdir -p packaging/deb/$(ARCH)
+
+	mkdir -p deb_pkg/usr/share/doc/$(NAME)
+	gzip -c README.md > deb_pkg/usr/share/doc/$(NAME)/README.md.gz
+	cp packaging/deb/$(ARCH)/changelog deb_pkg/usr/share/doc/$(NAME)/changelog
+	gzip -c packaging/deb/$(ARCH)/changelog > deb_pkg/usr/share/doc/$(NAME)/changelog.Debian.gz
+
 	@VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
 	FULL_VERSION=$${VERSION}-$(REVISION); \
 	DEPENDS=$$(dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n 's/^shlibs:Depends=//p'); \
@@ -81,14 +86,18 @@ package-deb:
 	echo "📄 Control final generado:" && cat deb_pkg/DEBIAN/control; \
 	dpkg-deb --build deb_pkg "$(NAME)_$${FULL_VERSION}_$${ARCH}.deb"
 
+	@echo "📦 Paquete generado: $(NAME)_$${FULL_VERSION}_$${ARCH}.deb"
+
+
 changelog-deb:
 	@PACKAGE=$(NAME); \
-	VERSION=$$(grep '^Version:' packaging/deb/$(ARCH)/control | cut -d' ' -f2); \
+	VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
+	FULL_VERSION=$${VERSION}-$(REVISION); \
 	EMAIL="rafex@rafex.dev"; \
 	FULLNAME="Raúl González"; \
 	DATE=$$(date -R); \
 	MESSAGE=$$(git log -1 --pretty=format:'  * %s'); \
-	echo "$$PACKAGE ($$VERSION-1) stable; urgency=medium\n\n$$MESSAGE\n\n -- $$FULLNAME <$$EMAIL>  $$DATE\n" > packaging/deb/$(ARCH)/changelog
+	echo "$$PACKAGE ($$FULL_VERSION) stable; urgency=medium\n\n$$MESSAGE\n\n -- $$FULLNAME <$$EMAIL>  $$DATE\n" > packaging/deb/$(ARCH)/changelog
 
 changelog-md:
 	@echo "# Changelog" > CHANGELOG.md
@@ -117,9 +126,8 @@ lint:
 		echo "❌ Debes especificar ARCH=amd64 o ARCH=arm64"; \
 		exit 1; \
 	fi
-	@VERSION=$(shell grep '^version' Cargo.toml | head -n1 | cut -d'"' -f2); \
-	REVISION=2+rafex; \
-	FULL_VERSION=$$VERSION-$$REVISION; \
+	@VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
+	FULL_VERSION=$${VERSION}-$(REVISION); \
 	FILE="$(NAME)_$$FULL_VERSION_$(ARCH).deb"; \
 	if [ -f $$FILE ]; then \
 		echo "🔍 Ejecutando lintian sobre $$FILE"; \
@@ -128,6 +136,7 @@ lint:
 		echo "❌ No se encontró el paquete $$FILE. Ejecuta primero 'make package-deb ARCH=...'"; \
 		exit 1; \
 	fi
+
 docker-build:
 	@if [ -z "$(ARCH)" ]; then \
 		echo "❌ Debes especificar ARCH=amd64 o ARCH=arm64"; \
