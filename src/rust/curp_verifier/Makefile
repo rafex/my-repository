@@ -86,7 +86,7 @@ package-deb:
 	echo "📄 Control final generado:" && cat deb_pkg/DEBIAN/control; \
 	dpkg-deb --build deb_pkg "$(NAME)_$${FULL_VERSION}_$${ARCH}.deb"
 
-	@echo '📦 Paquete generado: $(NAME)_$${FULL_VERSION}_$${ARCH}.deb'
+	@echo "📦 Paquete generado: $(NAME)_$${FULL_VERSION}_$${ARCH}.deb"
 
 
 changelog-deb:
