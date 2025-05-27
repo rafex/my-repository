@@ -84,10 +84,8 @@ package-deb:
 	SIZE=$$(du -ks deb_pkg/usr | cut -f1); \
 	echo "Installed-Size: $$SIZE" >> deb_pkg/DEBIAN/control; \
 	echo "📄 Control final generado:" && cat deb_pkg/DEBIAN/control; \
-	dpkg-deb --build deb_pkg "$(NAME)_$${FULL_VERSION}_$${ARCH}.deb"
-
-	@echo "📦 Paquete generado: $(NAME)_$${FULL_VERSION}_$${ARCH}.deb"
-
+	dpkg-deb --build deb_pkg "$(NAME)_$${FULL_VERSION}_$${ARCH}.deb"; \
+	echo "📦 Paquete generado: $(NAME)_$${FULL_VERSION}_$${ARCH}.deb"
 
 changelog-deb:
 	@PACKAGE=$(NAME); \
@@ -126,6 +124,8 @@ lint:
 		echo "❌ Debes especificar ARCH=amd64 o ARCH=arm64"; \
 		exit 1; \
 	fi
+	pwd
+	ls -la
 	@VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
 	FULL_VERSION=$${VERSION}-$(REVISION); \
 	FILE="$(NAME)_$${FULL_VERSION}_$${ARCH}.deb"; \
