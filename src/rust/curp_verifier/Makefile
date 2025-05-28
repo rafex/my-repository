@@ -128,7 +128,7 @@ lint:
 	ls -la
 	@VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
 	FULL_VERSION=$${VERSION}-$(REVISION); \
-	FILE="$(NAME)_$${FULL_VERSION}_$${ARCH}.deb"; \
+	FILE=$${file:-$(NAME)_$${FULL_VERSION}_$${ARCH}.deb}; \
 	if [ -f $$FILE ]; then \
 		echo "🔍 Ejecutando lintian sobre $$FILE"; \
 		lintian $$FILE; \

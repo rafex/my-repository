@@ -35,9 +35,10 @@ jobs:
           make changelog-deb ARCH=amd64
           make package-deb ARCH=amd64
           ls -lah
-          mv curp-verifier_*_amd64.deb $GITHUB_WORKSPACE/
+          cp curp-verifier_*_amd64.deb $GITHUB_WORKSPACE/
 
       - name: 🔍 Lint package with lintian
+        working-directory: src/rust/curp_verifier
         run: |
           ls -la
           make lint ARCH=amd64
