@@ -5,10 +5,12 @@ CRATE=curp_verifier
 NAME=libcurp-verifier0
 EXT=$(shell uname | grep -q Darwin && echo dylib || echo so)
 TARGET=target/release/lib$(CRATE).$(EXT)
+TARGET_ARM=target/aarch64-unknown-linux-gnu/release/lib$(CRATE).$(EXT)
 HEADER=include/$(CRATE).h
 TEMPLATE=packaging/deb/control
 REVISION=2+rafex
-LIB_CURP=$(LIB_CURP)
+LIB_CURP=libcurp_verifier
+LIB_CURP_VERSION=$(LIB_CURP).so.0.1.1
 # FULL_VERSION=$(VERSION)-$(REVISION)  # Eliminado según instrucciones
 
 .PHONY: all build clean cbindgen install install-tools
@@ -48,19 +50,19 @@ package-deb:
 	@echo "📦 Empaquetando para arquitectura: $(ARCH)"
 	mkdir -p deb_pkg/usr/lib
 	@if [ "$(ARCH)" = "arm64" ]; then \
-		RUSTFLAGS="-C link-arg=-Wl,-soname,libcurp_verifier.so.0" cargo build --release --target aarch64-unknown-linux-gnu; \
-		cp target/aarch64-unknown-linux-gnu/release/lib$(CRATE).$(EXT) deb_pkg/usr/lib/$(LIB_CURP); \
+		RUSTFLAGS="-C link-arg=-Wl,-soname,$(LIB_CURP).so.0" cargo build --release --target aarch64-unknown-linux-gnu; \
+		cp $(TARGET_ARM) deb_pkg/usr/lib/$(LIB_CURP_VERSION); \
 		tree deb_pkg; \
-		aarch64-linux-gnu-strip deb_pkg/usr/lib/$(LIB_CURP); \
+		aarch64-linux-gnu-strip deb_pkg/usr/lib/$(LIB_CURP_VERSION); \
 	else \
-		RUSTFLAGS="-C link-arg=-Wl,-soname,libcurp_verifier.so.0" cargo build --release; \
-		cp $(TARGET) deb_pkg/usr/lib/$(LIB_CURP); \
+		RUSTFLAGS="-C link-arg=-Wl,-soname,$(LIB_CURP).so.0" cargo build --release; \
+		cp $(TARGET) deb_pkg/usr/lib/$(LIB_CURP_VERSION); \
 		tree deb_pkg; \
-		strip deb_pkg/usr/lib/$(LIB_CURP); \
+		strip deb_pkg/usr/lib/$(LIB_CURP_VERSION); \
 	fi
 
-	ln -sf $(LIB_CURP) deb_pkg/usr/lib/libcurp_verifier.so.0
-	ln -sf libcurp_verifier.so.0 deb_pkg/usr/lib/libcurp_verifier.so
+	ln -sf $(LIB_CURP_VERSION) deb_pkg/usr/lib/$(LIB_CURP).so.0
+	ln -sf $(LIB_CURP).so.0 deb_pkg/usr/lib/$(LIB_CURP).so
 	tree deb_pkg
 
 	mkdir -p deb_pkg/usr/include
