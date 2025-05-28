@@ -18,6 +18,9 @@ jobs:
     steps:
       - name: 🧾 Checkout repo
         uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
 
       - name: 🦀 Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -26,24 +29,26 @@ jobs:
         run: sudo apt update && sudo apt install -y dpkg-dev lintian
 
       - name: 🛠 Build Rust library
-        working-directory: src/rust/curp_generator
-        run: make all
+        working-directory: src/rust/curp-generator
+        run: make install-tools cbindgen
 
       - name: 📦 Build .deb package
-        working-directory: src/rust/curp_generator
+        working-directory: src/rust/curp-generator
         run: |
           make changelog-deb ARCH=amd64
           make package-deb ARCH=amd64
           ls -lah
-          mv curp-generator_*_amd64.deb $GITHUB_WORKSPACE/
+          cp libcurp-generator*_amd64.deb $GITHUB_WORKSPACE/
 
       - name: 🔍 Lint package with lintian
-        working-directory: src/rust/curp_generator
-        run: make lint ARCH=amd64
+        working-directory: src/rust/curp-generator
+        run: |
+          ls -la
+          make lint ARCH=amd64
 
       - name: 🧮 Generate SHA256 checksum
         run: |
-          for deb in curp-generator_*.deb; do
+          for deb in libcurp-generator*.deb; do
             sha256sum "$deb" > "$deb.sha256"
           done
 
@@ -51,7 +56,7 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_GPG_PRIVATE_KEY }}" | base64 -d > private.key.asc
           gpg --batch --import private.key.asc
-          debs=$(ls curp-generator_*.deb)
+          debs=$(ls libcurp-generator*.deb)
           for deb in $debs; do
             gpg --output "$deb.sig" --detach-sign --armor "$deb"
           done
@@ -60,7 +65,7 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
           chmod 600 id_github_gactions
-          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./curp-generator_*_amd64.deb ./curp-generator_*_amd64.deb.sig ./curp-generator_*_amd64.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-amd64/
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./*_amd64.deb ./*_amd64.deb.sig ./*_amd64.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-amd64/
 
       - name: 🔄 Regenerate Packages.gz using ssh
         run: |
@@ -89,6 +94,9 @@ jobs:
     steps:
       - name: 🧾 Checkout repo
         uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
 
       - name: 🦀 Install Rust + ARM target
         uses: dtolnay/rust-toolchain@stable
@@ -96,37 +104,27 @@ jobs:
           targets: aarch64-unknown-linux-gnu
 
       - name: 🧰 Install cross-compiling tools
-        run: sudo apt update && sudo apt install -y dpkg-dev gcc-aarch64-linux-gnu
-
-      - name: 🛠 Build Rust library for ARM64
-        working-directory: src/rust/curp_generator
-        run: |
-          cargo build --release --target aarch64-unknown-linux-gnu
-          mkdir -p target/release
-          cp target/aarch64-unknown-linux-gnu/release/libcurp_generator.* target/release/
-
-      - name: 📥 Install cbindgen
-        run: cargo install cbindgen
+        run: sudo apt update && sudo apt install -y dpkg-dev gcc-aarch64-linux-gnu libc6-dev-arm64-cross lintian
 
       - name: 🧾 Generate header
-        working-directory: src/rust/curp_generator
-        run: make cbindgen
+        working-directory: src/rust/curp-generator
+        run: make install-tools cbindgen
 
       - name: 📦 Build .deb package for ARM64
-        working-directory: src/rust/curp_generator
+        working-directory: src/rust/curp-generator
         run: |
           make changelog-deb ARCH=arm64
           make package-deb ARCH=arm64
           ls -lah
-          mv curp-generator_*_arm64.deb $GITHUB_WORKSPACE/
+          cp libcurp-generator*_arm64.deb $GITHUB_WORKSPACE/
 
       - name: 🔍 Lint package with lintian
-        working-directory: src/rust/curp_generator
+        working-directory: src/rust/curp-generator
         run: make lint ARCH=arm64
 
       - name: 🧮 Generate SHA256 checksum
         run: |
-          for deb in curp-generator_*.deb; do
+          for deb in libcurp-generator*.deb; do
             sha256sum "$deb" > "$deb.sha256"
           done
 
@@ -134,7 +132,7 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_GPG_PRIVATE_KEY }}" | base64 -d > private.key.asc
           gpg --batch --import private.key.asc
-          debs=$(ls curp-generator_*.deb)
+          debs=$(ls libcurp-generator*.deb)
           for deb in $debs; do
             gpg --output "$deb.sig" --detach-sign --armor "$deb"
           done
@@ -143,7 +141,7 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
           chmod 600 id_github_gactions
-          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./curp-generator_*_arm64.deb ./curp-generator_*_arm64.deb.sig ./curp-generator_*_arm64.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-arm64/
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./*_arm64.deb ./*_arm64.deb.sig ./*_arm64.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-arm64/
 
       - name: 🔄 Regenerate Packages.gz using ssh
         run: |
