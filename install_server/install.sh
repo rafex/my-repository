@@ -1,5 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")/.."; pwd)"
+README_FILE="$SCRIPT_DIR/README.md"
 
 CERT_DIR="/etc/letsencrypt/live/repository.rafex.app"
 NGINX_CONF="/etc/nginx/sites-available/repo"
@@ -13,7 +16,8 @@ print_help() {
   echo "  --generate-indexes, -g  Genera índices APT (.deb) y YUM (.rpm)"
   echo "  --firewall, -f         Configura UFW para permitir SSH, HTTP y HTTPS"
   echo "  --markdown, -m        Instala 'markdown' y genera index.html desde README.md"
-  echo "  --reindex, -r       Regenera Packages.gz para amd64 y arm64"
+  echo "  --report, -r        Genera informe de acceso en tiempo real con contraseña"
+  echo "  --reindex, -R       Regenera Packages.gz para amd64 y arm64 (NOTA: -r ahora es para el informe)"
   echo "  --help, -h       Muestra esta ayuda"
   echo ""
   echo "Ejemplos:"
@@ -31,7 +35,7 @@ init_server() {
   sudo mkdir -p /srv/repo/debian/dists/stable/main/binary-amd64
   sudo mkdir -p /srv/repo/debian/dists/stable/main/binary-arm64
   sudo mkdir -p /srv/repo/redhat
-  sudo chown -R "$USER:www-data" /srv/repo
+  sudo chown -R "${SUDO_USER:-$USER}:www-data" /srv/repo
 
   sudo chmod -R 775 /srv/repo/debian/dists/stable/main/binary-amd64
   sudo chmod -R 775 /srv/repo/debian/dists/stable/main/binary-arm64
@@ -59,14 +63,24 @@ EOF
 
   echo "📄 Generando index.html a partir de README.md..."
   if command -v markdown >/dev/null 2>&1; then
-    markdown /opt/src/my-repository/README.md > /srv/repo/index.html
+    markdown "$README_FILE" > /srv/repo/index.html
   else
     echo "<pre>" > /srv/repo/index.html
-    cat /opt/src/my-repository/README.md >> /srv/repo/index.html
+    cat "$README_FILE" >> /srv/repo/index.html
     echo "</pre>" >> /srv/repo/index.html
   fi
   echo "✅ Archivo index.html generado en /srv/repo/"
   echo "✅ Repositorio accesible temporalmente en HTTP: http://repository.rafex.app/"
+}
+
+# Ejecuta goaccess en segundo plano y genera reporte HTML
+run_report() {
+  echo "🏃 Iniciando goaccess como daemon en segundo plano..."
+  sudo /usr/bin/goaccess /var/log/nginx/access.log \
+    --log-format=COMBINED \
+    --date-format=%d/%b/%Y \
+    --time-format=%T \
+    -o /var/www/html/goaccess/index.html
 }
 
 install_markdown_index() {
@@ -79,7 +93,7 @@ install_markdown_index() {
   echo "📄 Generando index.html a partir de README.md..."
   echo '<!DOCTYPE html>' > /srv/repo/index.html
   echo '<html lang="es"><head><meta charset="UTF-8"><title>Repositorio de Rafex</title></head><body>' >> /srv/repo/index.html
-  markdown /opt/src/my-repository/README.md >> /srv/repo/index.html
+  markdown "$README_FILE" >> /srv/repo/index.html
   echo '</body></html>' >> /srv/repo/index.html
   echo "✅ Archivo index.html generado con 'markdown'."
 }
@@ -166,7 +180,7 @@ case "$1" in
   --ssl|-s)
     enable_ssl
     ;;
-  --generate-indexes|-g|--reindex|-r)
+  --generate-indexes|-g|--reindex|-R)
     generate_indexes
     ;;
   --firewall|-f)
@@ -174,6 +188,9 @@ case "$1" in
     ;;
   --markdown|-m)
     install_markdown_index
+    ;;
+  --report|-r)
+    run_report
     ;;
   --help|-h|"")
     print_help
