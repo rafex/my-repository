@@ -45,7 +45,7 @@ jobs:
 
       - name: 🧮 Generate SHA256 checksum
         run: |
-          for deb in curp-verifier_*.deb; do
+          for deb in libcurp-verifier_*.deb; do
             sha256sum "$deb" > "$deb.sha256"
           done
 
@@ -53,7 +53,7 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_GPG_PRIVATE_KEY }}" | base64 -d > private.key.asc
           gpg --batch --import private.key.asc
-          debs=$(ls curp-verifier_*.deb)
+          debs=$(ls libcurp-verifier_*.deb)
           for deb in $debs; do
             gpg --output "$deb.sig" --detach-sign --armor "$deb"
           done
@@ -128,7 +128,7 @@ jobs:
 
       - name: 🧮 Generate SHA256 checksum
         run: |
-          for deb in curp-verifier_*.deb; do
+          for deb in libcurp-verifier_*.deb; do
             sha256sum "$deb" > "$deb.sha256"
           done
 
@@ -136,7 +136,7 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_GPG_PRIVATE_KEY }}" | base64 -d > private.key.asc
           gpg --batch --import private.key.asc
-          debs=$(ls curp-verifier_*.deb)
+          debs=$(ls libcurp-verifier_*.deb)
           for deb in $debs; do
             gpg --output "$deb.sig" --detach-sign --armor "$deb"
           done
