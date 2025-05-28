@@ -2,7 +2,7 @@
 PREFIX ?= /usr
 # Nombre del crate
 CRATE=curp_verifier
-NAME=libcurp-verifier
+NAME=libcurp-verifier0
 EXT=$(shell uname | grep -q Darwin && echo dylib || echo so)
 TARGET=target/release/lib$(CRATE).$(EXT)
 HEADER=include/$(CRATE).h
@@ -53,19 +53,24 @@ package-deb:
 		RUSTFLAGS="-C link-arg=-Wl,-soname,libcurp_verifier.so.0" cargo build --release; \
 		cp $(TARGET) deb_pkg/usr/lib/libcurp_verifier.so.0.1.1; \
 	fi
-	ln -sf libcurp_verifier.so.0.1.1 deb_pkg/usr/lib/libcurp_verifier.so.0
-	ln -sf libcurp_verifier.so.0 deb_pkg/usr/lib/libcurp_verifier.so
+
+	tree deb_pkg
+	strip deb_pkg/usr/lib/libcurp_verifier.so.0.1.1
+	ln -sf deb_pkg/usr/lib/libcurp_verifier.so.0.1.1 deb_pkg/usr/lib/libcurp_verifier.so.0
+	ln -sf deb_pkg/usr/lib/libcurp_verifier.so.0 deb_pkg/usr/lib/libcurp_verifier.so
+	tree deb_pkg
 
 	mkdir -p deb_pkg/usr/include
 	mkdir -p deb_pkg/DEBIAN
 	cp $(HEADER) deb_pkg/usr/include/
 	mkdir -p packaging/deb/$(ARCH)
-	# strip se aplicará después de los symlinks
+	
 	mkdir -p deb_pkg/usr/share/doc/$(NAME)
 	gzip -c README.md > deb_pkg/usr/share/doc/$(NAME)/README.md.gz
 	gzip -9 -c packaging/deb/$(ARCH)/changelog > deb_pkg/usr/share/doc/$(NAME)/changelog.Debian.gz
 	cp packaging/deb/copyright deb_pkg/usr/share/doc/$(NAME)/copyright
 	cp packaging/deb/post* deb_pkg/DEBIAN/.
+	cp packaging/deb/triggers deb_pkg/DEBIAN/triggers
 	chmod 0644 deb_pkg/usr/lib/libcurp_verifier.so.0.1.1
 
 	@VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
