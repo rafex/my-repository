@@ -73,47 +73,14 @@ EOF
   echo "✅ Repositorio accesible temporalmente en HTTP: http://repository.rafex.app/"
 }
 
-# --- Funciones para generación de informe con goaccess ---
-
-# Configura autenticación básica para el informe
-enable_report_auth() {
-  REPORT_HTML="/srv/repo/report.html"
-  HTPASSWD_FILE="/srv/repo/.htpasswd"
-
-  echo "🔐 Configurando usuario y contraseña para el informe."
-  printf "Introduce el nombre de usuario para el informe: "
-  read REPORT_USER
-
-  echo "Configurando archivo de contraseñas en $HTPASSWD_FILE"
-  sudo htpasswd -c -i "$HTPASSWD_FILE" "$REPORT_USER"
-  sudo chown "${SUDO_USER:-$USER}:www-data" "$HTPASSWD_FILE"
-  sudo chmod 640 "$HTPASSWD_FILE"
-}
-
 # Ejecuta goaccess en segundo plano y genera reporte HTML
 run_report() {
   echo "🏃 Iniciando goaccess como daemon en segundo plano..."
-  PID_FILE="/var/run/goaccess.pid"
-  sudo goaccess /var/log/nginx/access.log \
+  sudo /usr/bin/goaccess /var/log/nginx/access.log \
     --log-format=COMBINED \
-    --real-time-html \
-    --daemon \
-    --pid-file="$PID_FILE" \
-    --addr=0.0.0.0 \
-    -o "$REPORT_HTML"
-  GOACCESS_PID=$(sudo cat "$PID_FILE")
-  echo "Goaccess daemon inició con PID: $GOACCESS_PID"
-}
-
-# Limpieza de archivos al terminar
-cleanup_report() {
-  echo "🗑️ Eliminando archivo de informe ($REPORT_HTML) y archivo de contraseña ($HTPASSWD_FILE)..."
-  if [ -n "$GOACCESS_PID" ]; then
-      sudo kill "$GOACCESS_PID"
-  fi
-  sudo rm -f "$REPORT_HTML" "$HTPASSWD_FILE"
-  echo "✅ Limpieza completa."
-  exit 0
+    --date-format=%d/%b/%Y \
+    --time-format=%T \
+    -o /var/www/html/goaccess/index.html
 }
 
 install_markdown_index() {
@@ -213,7 +180,7 @@ case "$1" in
   --ssl|-s)
     enable_ssl
     ;;
-  --generate-indexes|-g)
+  --generate-indexes|-g|--reindex|-R)
     generate_indexes
     ;;
   --firewall|-f)
@@ -223,13 +190,7 @@ case "$1" in
     install_markdown_index
     ;;
   --report|-r)
-    # Configuración y ejecución de informe de acceso en tiempo real
-    enable_report_auth
-    trap cleanup_report INT
     run_report
-    ;;
-  --reindex|-R)
-    generate_indexes
     ;;
   --help|-h|"")
     print_help
