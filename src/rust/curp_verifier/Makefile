@@ -76,6 +76,7 @@ package-deb:
 	cp packaging/deb/copyright deb_pkg/usr/share/doc/$(NAME)/copyright
 	cp packaging/deb/post* deb_pkg/DEBIAN/.
 	cp packaging/deb/triggers deb_pkg/DEBIAN/triggers
+	cp packaging/deb/shlibs deb_pkg/DEBIAN/shlibs
 	chmod 0644 deb_pkg/usr/lib/$(LIB_CURP_VERSION)
 
 	@VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
@@ -100,6 +101,7 @@ package-deb:
 	echo "Installed-Size: $$SIZE" >> deb_pkg/DEBIAN/control; \
 	echo "📄 Control final generado:" && cat deb_pkg/DEBIAN/control; \
 	fakeroot dpkg-deb --build deb_pkg "$(NAME)_$${FULL_VERSION}_$${ARCH}.deb"; \
+	tree deb_pkg; \
 	echo "📦 Paquete generado: $(NAME)_$${FULL_VERSION}_$${ARCH}.deb"
 
 changelog-deb:

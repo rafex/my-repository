@@ -98,7 +98,7 @@ jobs:
           targets: aarch64-unknown-linux-gnu
 
       - name: 🧰 Install cross-compiling tools
-        run: sudo apt update && sudo apt install -y dpkg-dev gcc-aarch64-linux-gnu
+        run: sudo apt update && sudo apt install -y dpkg-dev gcc-aarch64-linux-gnu lintian
 
       - name: 🛠 Build Rust library for ARM64
         working-directory: src/rust/curp_verifier
