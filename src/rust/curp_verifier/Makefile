@@ -76,7 +76,7 @@ package-deb:
 	cp packaging/deb/copyright deb_pkg/usr/share/doc/$(NAME)/copyright
 	cp packaging/deb/post* deb_pkg/DEBIAN/.
 	cp packaging/deb/triggers deb_pkg/DEBIAN/triggers
-	chmod 0644 deb_pkg/usr/lib/$(LIB_CURP)
+	chmod 0644 deb_pkg/usr/lib/$(LIB_CURP_VERSION)
 
 	@VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
 	FULL_VERSION=$${VERSION}-$(REVISION); \
