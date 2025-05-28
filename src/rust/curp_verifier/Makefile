@@ -8,6 +8,7 @@ TARGET=target/release/lib$(CRATE).$(EXT)
 HEADER=include/$(CRATE).h
 TEMPLATE=packaging/deb/control
 REVISION=2+rafex
+LIB_CURP=$(LIB_CURP)
 # FULL_VERSION=$(VERSION)-$(REVISION)  # Eliminado según instrucciones
 
 .PHONY: all build clean cbindgen install install-tools
@@ -48,16 +49,18 @@ package-deb:
 	mkdir -p deb_pkg/usr/lib
 	@if [ "$(ARCH)" = "arm64" ]; then \
 		RUSTFLAGS="-C link-arg=-Wl,-soname,libcurp_verifier.so.0" cargo build --release --target aarch64-unknown-linux-gnu; \
-		cp target/aarch64-unknown-linux-gnu/release/lib$(CRATE).$(EXT) deb_pkg/usr/lib/libcurp_verifier.so.0.1.1; \
+		cp target/aarch64-unknown-linux-gnu/release/lib$(CRATE).$(EXT) deb_pkg/usr/lib/$(LIB_CURP); \
+		tree deb_pkg; \
+		aarch64-linux-gnu-strip deb_pkg/usr/lib/$(LIB_CURP); \
 	else \
 		RUSTFLAGS="-C link-arg=-Wl,-soname,libcurp_verifier.so.0" cargo build --release; \
-		cp $(TARGET) deb_pkg/usr/lib/libcurp_verifier.so.0.1.1; \
+		cp $(TARGET) deb_pkg/usr/lib/$(LIB_CURP); \
+		tree deb_pkg; \
+		strip deb_pkg/usr/lib/$(LIB_CURP); \
 	fi
 
-	tree deb_pkg
-	strip deb_pkg/usr/lib/libcurp_verifier.so.0.1.1
-	ln -sf deb_pkg/usr/lib/libcurp_verifier.so.0.1.1 deb_pkg/usr/lib/libcurp_verifier.so.0
-	ln -sf deb_pkg/usr/lib/libcurp_verifier.so.0 deb_pkg/usr/lib/libcurp_verifier.so
+	ln -sf $(LIB_CURP) deb_pkg/usr/lib/libcurp_verifier.so.0
+	ln -sf libcurp_verifier.so.0 deb_pkg/usr/lib/libcurp_verifier.so
 	tree deb_pkg
 
 	mkdir -p deb_pkg/usr/include
@@ -71,7 +74,7 @@ package-deb:
 	cp packaging/deb/copyright deb_pkg/usr/share/doc/$(NAME)/copyright
 	cp packaging/deb/post* deb_pkg/DEBIAN/.
 	cp packaging/deb/triggers deb_pkg/DEBIAN/triggers
-	chmod 0644 deb_pkg/usr/lib/libcurp_verifier.so.0.1.1
+	chmod 0644 deb_pkg/usr/lib/$(LIB_CURP)
 
 	@VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
 	FULL_VERSION=$${VERSION}-$(REVISION); \
@@ -89,6 +92,7 @@ package-deb:
 	        s|{{SUMMARY}}|Validador CURP|g; \
 	        s|{{DESCRIPTION}}|Verificar CURP conforme al instructivo oficial del RENAPO.|g" $$FINAL; \
 	cp $$FINAL deb_pkg/DEBIAN/control; \
+	echo "Triggers: interest /usr/lib" >> deb_pkg/DEBIAN/control; \
 	echo "📄 Control final generado:" && cat $$FINAL; \
 	SIZE=$$(du -ks deb_pkg/usr | cut -f1); \
 	echo "Installed-Size: $$SIZE" >> deb_pkg/DEBIAN/control; \
