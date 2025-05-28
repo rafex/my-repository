@@ -18,6 +18,9 @@ jobs:
     steps:
       - name: 🧾 Checkout repo
         uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
 
       - name: 🦀 Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -45,7 +48,7 @@ jobs:
 
       - name: 🧮 Generate SHA256 checksum
         run: |
-          for deb in libcurp-verifier_*.deb; do
+          for deb in *.deb; do
             sha256sum "$deb" > "$deb.sha256"
           done
 
@@ -53,7 +56,7 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_GPG_PRIVATE_KEY }}" | base64 -d > private.key.asc
           gpg --batch --import private.key.asc
-          debs=$(ls libcurp-verifier_*.deb)
+          debs=$(ls *.deb)
           for deb in $debs; do
             gpg --output "$deb.sig" --detach-sign --armor "$deb"
           done
@@ -62,7 +65,7 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
           chmod 600 id_github_gactions
-          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./libcurp-verifier*_amd64.deb ./libcurp-verifier*_amd64.deb.sig ./libcurp-verifier*_amd64.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-amd64/
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./*_amd64.deb ./*_amd64.deb.sig ./*_amd64.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-amd64/
 
       - name: 🔄 Regenerate Packages.gz using ssh
         run: |
@@ -91,6 +94,9 @@ jobs:
     steps:
       - name: 🧾 Checkout repo
         uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
 
       - name: 🦀 Install Rust + ARM target
         uses: dtolnay/rust-toolchain@stable
@@ -128,7 +134,7 @@ jobs:
 
       - name: 🧮 Generate SHA256 checksum
         run: |
-          for deb in libcurp-verifier_*.deb; do
+          for deb in *.deb; do
             sha256sum "$deb" > "$deb.sha256"
           done
 
@@ -136,7 +142,7 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_GPG_PRIVATE_KEY }}" | base64 -d > private.key.asc
           gpg --batch --import private.key.asc
-          debs=$(ls libcurp-verifier_*.deb)
+          debs=$(ls *.deb)
           for deb in $debs; do
             gpg --output "$deb.sig" --detach-sign --armor "$deb"
           done
@@ -145,7 +151,7 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
           chmod 600 id_github_gactions
-          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./libcurp-verifier*_arm64.deb ./libcurp-verifier*_arm64.deb.sig ./libcurp-verifier*_arm64.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-arm64/
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./*_arm64.deb ./*_arm64.deb.sig ./*_arm64.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-arm64/
 
       - name: 🔄 Regenerate Packages.gz using ssh
         run: |
