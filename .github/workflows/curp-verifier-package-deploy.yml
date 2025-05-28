@@ -23,7 +23,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: 📦 Install packaging tools
-        run: sudo apt update && sudo apt install -y dpkg-dev
+        run: sudo apt update && sudo apt install -y dpkg-dev lintian
 
       - name: 🛠 Build Rust library
         working-directory: src/rust/curp_verifier
@@ -35,11 +35,17 @@ jobs:
           make changelog-deb ARCH=amd64
           make package-deb ARCH=amd64
           ls -lah
-          mv curp-verifier_*_amd64.deb $GITHUB_WORKSPACE/
+          cp libcurp-verifier*_amd64.deb $GITHUB_WORKSPACE/
+
+      - name: 🔍 Lint package with lintian
+        working-directory: src/rust/curp_verifier
+        run: |
+          ls -la
+          make lint ARCH=amd64
 
       - name: 🧮 Generate SHA256 checksum
         run: |
-          for deb in curp-verifier_*.deb; do
+          for deb in libcurp-verifier_*.deb; do
             sha256sum "$deb" > "$deb.sha256"
           done
 
@@ -47,7 +53,7 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_GPG_PRIVATE_KEY }}" | base64 -d > private.key.asc
           gpg --batch --import private.key.asc
-          debs=$(ls curp-verifier_*.deb)
+          debs=$(ls libcurp-verifier_*.deb)
           for deb in $debs; do
             gpg --output "$deb.sig" --detach-sign --armor "$deb"
           done
@@ -56,7 +62,7 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
           chmod 600 id_github_gactions
-          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./curp-verifier_*_amd64.deb ./curp-verifier_*_amd64.deb.sig ./curp-verifier_*_amd64.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-amd64/
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./libcurp-verifier*_amd64.deb ./libcurp-verifier*_amd64.deb.sig ./libcurp-verifier*_amd64.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-amd64/
 
       - name: 🔄 Regenerate Packages.gz using ssh
         run: |
@@ -92,7 +98,7 @@ jobs:
           targets: aarch64-unknown-linux-gnu
 
       - name: 🧰 Install cross-compiling tools
-        run: sudo apt update && sudo apt install -y dpkg-dev gcc-aarch64-linux-gnu
+        run: sudo apt update && sudo apt install -y dpkg-dev gcc-aarch64-linux-gnu lintian
 
       - name: 🛠 Build Rust library for ARM64
         working-directory: src/rust/curp_verifier
@@ -114,11 +120,15 @@ jobs:
           make changelog-deb ARCH=arm64
           make package-deb ARCH=arm64
           ls -lah
-          mv curp-verifier_*_arm64.deb $GITHUB_WORKSPACE/
+          cp libcurp-verifier*_arm64.deb $GITHUB_WORKSPACE/
+
+      - name: 🔍 Lint package with lintian
+        working-directory: src/rust/curp_verifier
+        run: make lint ARCH=arm64
 
       - name: 🧮 Generate SHA256 checksum
         run: |
-          for deb in curp-verifier_*.deb; do
+          for deb in libcurp-verifier_*.deb; do
             sha256sum "$deb" > "$deb.sha256"
           done
 
@@ -126,7 +136,7 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_GPG_PRIVATE_KEY }}" | base64 -d > private.key.asc
           gpg --batch --import private.key.asc
-          debs=$(ls curp-verifier_*.deb)
+          debs=$(ls libcurp-verifier_*.deb)
           for deb in $debs; do
             gpg --output "$deb.sig" --detach-sign --armor "$deb"
           done
@@ -135,7 +145,7 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
           chmod 600 id_github_gactions
-          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./curp-verifier_*_arm64.deb ./curp-verifier_*_arm64.deb.sig ./curp-verifier_*_arm64.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-arm64/
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./libcurp-verifier*_arm64.deb ./libcurp-verifier*_arm64.deb.sig ./libcurp-verifier*_arm64.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-arm64/
 
       - name: 🔄 Regenerate Packages.gz using ssh
         run: |

@@ -2,10 +2,16 @@
 PREFIX ?= /usr
 # Nombre del crate
 CRATE=curp_verifier
-NAME=curp-verifier
+NAME=libcurp-verifier0
 EXT=$(shell uname | grep -q Darwin && echo dylib || echo so)
 TARGET=target/release/lib$(CRATE).$(EXT)
+TARGET_ARM=target/aarch64-unknown-linux-gnu/release/lib$(CRATE).$(EXT)
 HEADER=include/$(CRATE).h
+TEMPLATE=packaging/deb/control
+REVISION=2+rafex
+LIB_CURP=libcurp_verifier
+LIB_CURP_VERSION=$(LIB_CURP).so.0.1.1
+# FULL_VERSION=$(VERSION)-$(REVISION)  # Eliminado según instrucciones
 
 .PHONY: all build clean cbindgen install install-tools
 
@@ -44,39 +50,69 @@ package-deb:
 	@echo "📦 Empaquetando para arquitectura: $(ARCH)"
 	mkdir -p deb_pkg/usr/lib
 	@if [ "$(ARCH)" = "arm64" ]; then \
-		cargo build --release --target aarch64-unknown-linux-gnu; \
-		cp target/aarch64-unknown-linux-gnu/release/lib$(CRATE).$(EXT) deb_pkg/usr/lib/; \
+		RUSTFLAGS="-C link-arg=-Wl,-soname,$(LIB_CURP).so.0" cargo build --release --target aarch64-unknown-linux-gnu; \
+		cp $(TARGET_ARM) deb_pkg/usr/lib/$(LIB_CURP_VERSION); \
+		tree deb_pkg; \
+		aarch64-linux-gnu-strip deb_pkg/usr/lib/$(LIB_CURP_VERSION); \
 	else \
-		cargo build --release; \
-		cp $(TARGET) deb_pkg/usr/lib/; \
+		RUSTFLAGS="-C link-arg=-Wl,-soname,$(LIB_CURP).so.0" cargo build --release; \
+		cp $(TARGET) deb_pkg/usr/lib/$(LIB_CURP_VERSION); \
+		tree deb_pkg; \
+		strip deb_pkg/usr/lib/$(LIB_CURP_VERSION); \
 	fi
+
+	ln -sf $(LIB_CURP_VERSION) deb_pkg/usr/lib/$(LIB_CURP).so.0
+	ln -sf $(LIB_CURP).so.0 deb_pkg/usr/lib/$(LIB_CURP).so
+	tree deb_pkg
+
 	mkdir -p deb_pkg/usr/include
 	mkdir -p deb_pkg/DEBIAN
 	cp $(HEADER) deb_pkg/usr/include/
-	cp packaging/deb/$(ARCH)/control deb_pkg/DEBIAN/control
+	mkdir -p packaging/deb/$(ARCH)
+	
 	mkdir -p deb_pkg/usr/share/doc/$(NAME)
 	gzip -c README.md > deb_pkg/usr/share/doc/$(NAME)/README.md.gz
-	cp packaging/deb/$(ARCH)/changelog deb_pkg/usr/share/doc/$(NAME)/changelog
-	gzip -c packaging/deb/$(ARCH)/changelog > deb_pkg/usr/share/doc/$(NAME)/changelog.Debian.gz
-	@VERSION=$$(grep '^Version:' packaging/deb/$(ARCH)/control | cut -d' ' -f2); \
+	gzip -9 -c packaging/deb/$(ARCH)/changelog > deb_pkg/usr/share/doc/$(NAME)/changelog.Debian.gz
+	cp packaging/deb/copyright deb_pkg/usr/share/doc/$(NAME)/copyright
+	cp packaging/deb/post* deb_pkg/DEBIAN/.
+	chmod 0755 deb_pkg/DEBIAN/postinst deb_pkg/DEBIAN/postrm
+	cp packaging/deb/triggers deb_pkg/DEBIAN/triggers;
+	cp packaging/deb/shlibs deb_pkg/DEBIAN/shlibs
+	chmod 0644 deb_pkg/usr/lib/$(LIB_CURP_VERSION)
+
+	@VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
+	FULL_VERSION=$${VERSION}-$(REVISION); \
+	DEPENDS=$$(ldd deb_pkg/usr/lib/lib$(CRATE).so | awk '{ if ($$3 ~ /^\//) print $$1 }' | xargs -r dpkg -S | cut -d: -f1 | sort -u | paste -sd "," -); \
+	FINAL=packaging/deb/$(ARCH)/control; \
+	cp $(TEMPLATE) $$FINAL; \
+	sed -i "s|{{PACKAGE}}|$(NAME)|g; \
+	        s|{{VERSION}}|$$FULL_VERSION|g; \
+	        s|{{ARCHITECTURE}}|$(ARCH)|g; \
+	        s|{{MAINTAINER}}|Raúl González <rafex@rafex.dev>|g; \
+	        s|{{PRIORITY}}|optional|g; \
+	        s|{{SECTION}}|libs|g; \
+	        s|{{RUNTIME_DEPENDENCIES}}|$$DEPENDS|g; \
+	        s|{{HOMEPAGE}}|https://github.com/rafex/my-repository/tree/main/src/rust/$(CRATE)|g; \
+	        s|{{SUMMARY}}|Validador CURP|g; \
+	        s|{{DESCRIPTION}}|Verificar CURP conforme al instructivo oficial del RENAPO.|g" $$FINAL; \
+	cp $$FINAL deb_pkg/DEBIAN/control; \
+	echo "📄 Control final generado:" && cat $$FINAL; \
 	SIZE=$$(du -ks deb_pkg/usr | cut -f1); \
-	DEPENDS=$$(dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n 's/^shlibs:Depends=//p'); \
-	grep -q '^Installed-Size:' deb_pkg/DEBIAN/control && \
-		sed -i "s/^Installed-Size:.*/Installed-Size: $$SIZE/" deb_pkg/DEBIAN/control || \
-		echo "Installed-Size: $$SIZE" >> deb_pkg/DEBIAN/control; \
-	grep -q '^Depends:' deb_pkg/DEBIAN/control && \
-		sed -i "s/^Depends:.*/Depends: $$DEPENDS/" deb_pkg/DEBIAN/control || \
-		echo "Depends: $$DEPENDS" >> deb_pkg/DEBIAN/control; \
-	dpkg-deb --build deb_pkg $(NAME)_$${VERSION}_$(ARCH).deb
+	echo "Installed-Size: $$SIZE" >> deb_pkg/DEBIAN/control; \
+	echo "📄 Control final generado:" && cat deb_pkg/DEBIAN/control; \
+	fakeroot dpkg-deb --build deb_pkg "$(NAME)_$${FULL_VERSION}_$${ARCH}.deb"; \
+	tree deb_pkg; \
+	echo "📦 Paquete generado: $(NAME)_$${FULL_VERSION}_$${ARCH}.deb"
 
 changelog-deb:
 	@PACKAGE=$(NAME); \
-	VERSION=$$(grep '^Version:' packaging/deb/$(ARCH)/control | cut -d' ' -f2); \
+	VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
+	FULL_VERSION=$${VERSION}-$(REVISION); \
 	EMAIL="rafex@rafex.dev"; \
 	FULLNAME="Raúl González"; \
 	DATE=$$(date -R); \
 	MESSAGE=$$(git log -1 --pretty=format:'  * %s'); \
-	echo "$$PACKAGE ($$VERSION-1) stable; urgency=medium\n\n$$MESSAGE\n\n -- $$FULLNAME <$$EMAIL>  $$DATE\n" > packaging/deb/$(ARCH)/changelog
+	echo "$$PACKAGE ($$FULL_VERSION) stable; urgency=medium\n\n$$MESSAGE\n\n -- $$FULLNAME <$$EMAIL>  $$DATE\n" > packaging/deb/$(ARCH)/changelog
 
 changelog-md:
 	@echo "# Changelog" > CHANGELOG.md
@@ -99,3 +135,30 @@ update-readme-version:
 	@VERSION=$$(grep '^Version:' packaging/deb/amd64/control | cut -d' ' -f2); \
 	sed -i.bak -E "s|^> Versión actual: .*|> Versión actual: $$VERSION|" README.md; \
 	rm -f README.md.bak
+
+lint:
+	@if [ -z "$(ARCH)" ]; then \
+		echo "❌ Debes especificar ARCH=amd64 o ARCH=arm64"; \
+		exit 1; \
+	fi
+	pwd
+	ls -la
+	@VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
+	FULL_VERSION=$${VERSION}-$(REVISION); \
+	FILE=$${file:-$(NAME)_$${FULL_VERSION}_$${ARCH}.deb}; \
+	if [ -f $$FILE ]; then \
+		echo "🔍 Ejecutando lintian sobre $$FILE"; \
+		lintian $$FILE; \
+	else \
+		echo "❌ No se encontró el paquete $$FILE. Ejecuta primero 'make package-deb ARCH=...'"; \
+		exit 1; \
+	fi
+
+docker-build:
+	@if [ -z "$(ARCH)" ]; then \
+		echo "❌ Debes especificar ARCH=amd64 o ARCH=arm64"; \
+		exit 1; \
+	fi
+	NO_CACHE_FLAG=$$( [ "$(NO_CACHE)" = "true" ] && echo "--no-cache" ); \
+	docker buildx build --platform linux/$(ARCH) $$NO_CACHE_FLAG --build-arg ARCH=$(ARCH) -t curp-verifier-deb-builder -f Dockerfile --load --progress plain .
+	docker run --rm -v "$$(pwd)/output:/app/src/rust/curp_verifier" curp-verifier-deb-builder

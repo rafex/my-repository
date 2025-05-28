@@ -121,15 +121,21 @@ EOF
 }
 
 generate_indexes() {
-  echo "📦 Generando índice APT (.deb)..."
-  DEB_DIR="/srv/repo/debian/dists/stable/main/binary-amd64"
-  if [ -d "$DEB_DIR" ]; then
-    cd "$DEB_DIR"
-    dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
-    echo "✅ Packages.gz generado en $DEB_DIR"
-  else
-    echo "⚠️  Directorio APT no encontrado: $DEB_DIR"
-  fi
+  echo "🔄 Regenerando índices APT (.deb) para amd64 y arm64..."
+  cd /srv/repo/debian
+
+  for arch in amd64 arm64; do
+    ARCH_DIR="dists/stable/main/binary-$arch"
+    echo "📦 Generando Packages para $arch..."
+    apt-ftparchive packages "$ARCH_DIR" > "$ARCH_DIR/Packages"
+    gzip -9c "$ARCH_DIR/Packages" > "$ARCH_DIR/Packages.gz"
+  done
+
+  echo "🔏 Firmando Release e InRelease..."
+  rm -f dists/stable/Release dists/stable/Release.gpg dists/stable/InRelease
+  apt-ftparchive -c /opt/src/my-repository/install_server/config/release.conf release dists/stable > dists/stable/Release
+  gpg --batch --yes --default-key rafex@rafex.dev -abs -o dists/stable/Release.gpg dists/stable/Release
+  gpg --batch --yes --default-key rafex@rafex.dev --clearsign -o dists/stable/InRelease dists/stable/Release
 
   echo "📦 Generando índice YUM (.rpm)..."
   RPM_DIR="/srv/repo/redhat"
@@ -139,6 +145,8 @@ generate_indexes() {
   else
     echo "⚠️  Directorio RPM no encontrado: $RPM_DIR"
   fi
+
+  echo "✅ Reindexación y firma completadas."
 }
 
 configure_firewall() {
@@ -158,7 +166,7 @@ case "$1" in
   --ssl|-s)
     enable_ssl
     ;;
-  --generate-indexes|-g)
+  --generate-indexes|-g|--reindex|-r)
     generate_indexes
     ;;
   --firewall|-f)
@@ -166,21 +174,6 @@ case "$1" in
     ;;
   --markdown|-m)
     install_markdown_index
-    ;;
-  --reindex|-r)
-    echo "🔄 Regenerando índices APT (.deb)..."
-
-    for arch in amd64 arm64; do
-      DIR="/srv/repo/debian/dists/stable/main/binary-$arch"
-      if [ -d "$DIR" ]; then
-        echo "📁 Procesando $DIR"
-        cd "$DIR"
-        dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
-        echo "✅ Packages.gz actualizado en $DIR"
-      else
-        echo "⚠️  Directorio no encontrado: $DIR"
-      fi
-    done
     ;;
   --help|-h|"")
     print_help

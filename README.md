@@ -27,8 +27,7 @@ Para información general sobre licencias de código abierto, puedes consultar:
 > ✅ El repositorio ya cuenta con firma GPG. Puedes configurarlo de forma segura así:
 
 ```bash
-curl -fsSL https://repository.rafex.app/rafex.gpg | sudo gpg --dearmor -o /usr/share/keyrings/rafex-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/rafex-archive-keyring.gpg] https://repository.rafex.app/debian stable main" | sudo tee /etc/apt/sources.list.d/rafex.list > /dev/null
+curl -fsSL https://repository.rafex.app/pubkey.asc | sudo gpg --dearmor -o /usr/share/keyrings/rafex-archive-keyring.gpg echo "deb [signed-by=/usr/share/keyrings/rafex-archive-keyring.gpg] https://repository.rafex.app/debian stable main" | sudo tee /etc/apt/sources.list.d/rafex.list > /dev/null
 sudo apt update
 sudo apt install curp-verifier
 ```
