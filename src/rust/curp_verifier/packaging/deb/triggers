@@ -1,3 +1,0 @@
-activate-noawait ldconfig
-interest-noawait /etc/ld.so.conf.d
-interest-noawait /usr/lib

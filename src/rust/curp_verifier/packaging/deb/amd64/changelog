@@ -1,6 +1,0 @@
-curp-verifier (0.1.0-1) stable; urgency=medium
-
-  * Versión inicial empaquetada para Debian.
-  * Implementación del dígito verificador basada en el DOF.
-
- -- Raúl González <rafex@rafex.dev>  Sun, 25 May 2025 00:00:00 -0600
