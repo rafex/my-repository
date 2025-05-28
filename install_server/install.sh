@@ -70,6 +70,64 @@ EOF
   echo "✅ Repositorio accesible temporalmente en HTTP: http://repository.rafex.app/"
 }
 
+# --- Funciones para generación de informe con goaccess ---
+
+# Configura autenticación básica para el informe
+enable_report_auth() {
+  REPORT_HTML="/srv/repo/report.html"
+  HTPASSWD_FILE="/srv/repo/.htpasswd"
+
+  echo "🔐 Configurando usuario y contraseña para el informe."
+  read -p "Introduce el nombre de usuario para el informe: " REPORT_USER
+
+  cat << 'USAGE'
+Usage:
+        htpasswd [-cimB25dpsDv] [-C cost] [-r rounds] passwordfile username
+        htpasswd -b[cmB25dpsDv] [-C cost] [-r rounds] passwordfile username password
+
+        htpasswd -n[imB25dps] [-C cost] [-r rounds] username
+        htpasswd -nb[mB25dps] [-C cost] [-r rounds] username password
+ -c  Create a new file.
+ -n  Don't update file; display results on stdout.
+ -b  Use the password from the command line rather than prompting for it.
+ -i  Read password from stdin without verification (for script usage).
+ -m  Force MD5 hashing of the password (default).
+ -2  Force SHA-256 hashing of the password (secure).
+ -5  Force SHA-512 hashing of the password (secure).
+ -B  Force bcrypt hashing of the password (very secure).
+ -C  Set the computing time used for the bcrypt algorithm
+     (higher is more secure but slower, default: 5, valid: 4 to 17).
+ -r  Set the number of rounds used for the SHA-256, SHA-512 algorithms
+     (higher is more secure but slower, default: 5000).
+ -d  Force CRYPT hashing of the password (8 chars max, insecure).
+ -s  Force SHA-1 hashing of the password (insecure).
+ -p  Do not hash the password (plaintext, insecure).
+ -D  Delete the specified user.
+ -v  Verify password for the specified user.
+USAGE
+
+  echo "Configurando archivo de contraseñas en $HTPASSWD_FILE"
+  sudo htpasswd -c -i "$HTPASSWD_FILE" "$REPORT_USER"
+  sudo chown "$USER:www-data" "$HTPASSWD_FILE"
+  sudo chmod 640 "$HTPASSWD_FILE"
+}
+
+# Ejecuta goaccess en segundo plano y genera reporte HTML
+run_report() {
+  echo "🏃 Ejecutando goaccess en segundo plano. Presiona Ctrl+C para detener."
+  sudo goaccess /var/log/nginx/access.log --log-format=COMBINED --real-time-html --addr=0.0.0.0 -o "$REPORT_HTML" &
+  GOACCESS_PID=$!
+  echo "Goaccess PID: $GOACCESS_PID"
+}
+
+# Limpieza de archivos al terminar
+cleanup_report() {
+  echo "🗑️ Eliminando archivo de informe ($REPORT_HTML) y archivo de contraseña ($HTPASSWD_FILE)..."
+  sudo rm -f "$REPORT_HTML" "$HTPASSWD_FILE"
+  echo "✅ Limpieza completa."
+  exit 0
+}
+
 install_markdown_index() {
   echo "📥 Instalando 'markdown' si es necesario..."
   if ! command -v markdown >/dev/null 2>&1; then
@@ -152,66 +210,6 @@ generate_indexes() {
 
 configure_firewall() {
   echo "🛡️ Configurando firewall con UFW..."
-<<<<<<< ADD_REPORT_FUNCTIONS
-
-# --- Funciones para generación de informe con goaccess ---
-
-# Configura autenticación básica para el informe
-enable_report_auth() {
-  REPORT_HTML="/srv/repo/report.html"
-  HTPASSWD_FILE="/srv/repo/.htpasswd"
-
-  echo "🔐 Configurando usuario y contraseña para el informe."
-  read -p "Introduce el nombre de usuario para el informe: " REPORT_USER
-
-  cat << 'USAGE'
-Usage:
-        htpasswd [-cimB25dpsDv] [-C cost] [-r rounds] passwordfile username
-        htpasswd -b[cmB25dpsDv] [-C cost] [-r rounds] passwordfile username password
-
-        htpasswd -n[imB25dps] [-C cost] [-r rounds] username
-        htpasswd -nb[mB25dps] [-C cost] [-r rounds] username password
- -c  Create a new file.
- -n  Don't update file; display results on stdout.
- -b  Use the password from the command line rather than prompting for it.
- -i  Read password from stdin without verification (for script usage).
- -m  Force MD5 hashing of the password (default).
- -2  Force SHA-256 hashing of the password (secure).
- -5  Force SHA-512 hashing of the password (secure).
- -B  Force bcrypt hashing of the password (very secure).
- -C  Set the computing time used for the bcrypt algorithm
-     (higher is more secure but slower, default: 5, valid: 4 to 17).
- -r  Set the number of rounds used for the SHA-256, SHA-512 algorithms
-     (higher is more secure but slower, default: 5000).
- -d  Force CRYPT hashing of the password (8 chars max, insecure).
- -s  Force SHA-1 hashing of the password (insecure).
- -p  Do not hash the password (plaintext, insecure).
- -D  Delete the specified user.
- -v  Verify password for the specified user.
-USAGE
-
-  echo "Configurando archivo de contraseñas en $HTPASSWD_FILE"
-  sudo htpasswd -c -i "$HTPASSWD_FILE" "$REPORT_USER"
-  sudo chown "$USER:www-data" "$HTPASSWD_FILE"
-  sudo chmod 640 "$HTPASSWD_FILE"
-}
-
-# Ejecuta goaccess en segundo plano y genera reporte HTML
-run_report() {
-  echo "🏃 Ejecutando goaccess en segundo plano. Presiona Ctrl+C para detener."
-  sudo goaccess /var/log/nginx/access.log --log-format=COMBINED --real-time-html --addr=0.0.0.0 -o "$REPORT_HTML" &
-  GOACCESS_PID=$!
-  echo "Goaccess PID: $GOACCESS_PID"
-}
-
-# Limpieza de archivos al terminar
-cleanup_report() {
-  echo "🗑️ Eliminando archivo de informe ($REPORT_HTML) y archivo de contraseña ($HTPASSWD_FILE)..."
-  sudo rm -f "$REPORT_HTML" "$HTPASSWD_FILE"
-  echo "✅ Limpieza completa."
-  exit 0
-}
-<<<<<<< END_ADD
   sudo apt install -y ufw
   sudo ufw allow OpenSSH
   sudo ufw allow 80
