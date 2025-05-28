@@ -2,7 +2,7 @@
 PREFIX ?= /usr
 # Nombre del crate
 CRATE=curp_verifier
-NAME=curp-verifier
+NAME=libcurp-verifier
 EXT=$(shell uname | grep -q Darwin && echo dylib || echo so)
 TARGET=target/release/lib$(CRATE).$(EXT)
 HEADER=include/$(CRATE).h
@@ -47,22 +47,26 @@ package-deb:
 	@echo "📦 Empaquetando para arquitectura: $(ARCH)"
 	mkdir -p deb_pkg/usr/lib
 	@if [ "$(ARCH)" = "arm64" ]; then \
-		RUSTFLAGS="-C link-arg=-Wl,-soname,libcurp_verifier.so" cargo build --release --target aarch64-unknown-linux-gnu; \
-		cp target/aarch64-unknown-linux-gnu/release/lib$(CRATE).$(EXT) deb_pkg/usr/lib/; \
+		RUSTFLAGS="-C link-arg=-Wl,-soname,libcurp_verifier.so.0" cargo build --release --target aarch64-unknown-linux-gnu; \
+		cp target/aarch64-unknown-linux-gnu/release/lib$(CRATE).$(EXT) deb_pkg/usr/lib/libcurp_verifier.so.0.1.1; \
 	else \
-		RUSTFLAGS="-C link-arg=-Wl,-soname,libcurp_verifier.so" cargo build --release; \
-		cp $(TARGET) deb_pkg/usr/lib/; \
+		RUSTFLAGS="-C link-arg=-Wl,-soname,libcurp_verifier.so.0" cargo build --release; \
+		cp $(TARGET) deb_pkg/usr/lib/libcurp_verifier.so.0.1.1; \
 	fi
+	ln -sf libcurp_verifier.so.0.1.1 deb_pkg/usr/lib/libcurp_verifier.so.0
+	ln -sf libcurp_verifier.so.0 deb_pkg/usr/lib/libcurp_verifier.so
 
 	mkdir -p deb_pkg/usr/include
 	mkdir -p deb_pkg/DEBIAN
 	cp $(HEADER) deb_pkg/usr/include/
 	mkdir -p packaging/deb/$(ARCH)
-	strip deb_pkg/usr/lib/lib$(CRATE).so
+	# strip se aplicará después de los symlinks
 	mkdir -p deb_pkg/usr/share/doc/$(NAME)
 	gzip -c README.md > deb_pkg/usr/share/doc/$(NAME)/README.md.gz
-	gzip -c packaging/deb/$(ARCH)/changelog > deb_pkg/usr/share/doc/$(NAME)/changelog.Debian.gz
-	cp LICENSE deb_pkg/usr/share/doc/$(NAME)/copyright
+	gzip -9 -c packaging/deb/$(ARCH)/changelog > deb_pkg/usr/share/doc/$(NAME)/changelog.Debian.gz
+	cp packaging/deb/copyright deb_pkg/usr/share/doc/$(NAME)/copyright
+	cp packaging/deb/post* deb_pkg/DEBIAN/.
+	chmod 0644 deb_pkg/usr/lib/libcurp_verifier.so.0.1.1
 
 	@VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
 	FULL_VERSION=$${VERSION}-$(REVISION); \
