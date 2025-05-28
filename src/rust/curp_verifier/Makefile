@@ -46,7 +46,6 @@ package-deb:
 	fi
 	@echo "📦 Empaquetando para arquitectura: $(ARCH)"
 	mkdir -p deb_pkg/usr/lib
-	chown -R 0:0 deb_pkg
 	@if [ "$(ARCH)" = "arm64" ]; then \
 		RUSTFLAGS="-C link-arg=-Wl,-soname,libcurp_verifier.so" cargo build --release --target aarch64-unknown-linux-gnu; \
 		cp target/aarch64-unknown-linux-gnu/release/lib$(CRATE).$(EXT) deb_pkg/usr/lib/; \
@@ -85,7 +84,7 @@ package-deb:
 	SIZE=$$(du -ks deb_pkg/usr | cut -f1); \
 	echo "Installed-Size: $$SIZE" >> deb_pkg/DEBIAN/control; \
 	echo "📄 Control final generado:" && cat deb_pkg/DEBIAN/control; \
-	dpkg-deb --build deb_pkg "$(NAME)_$${FULL_VERSION}_$${ARCH}.deb"; \
+	fakeroot dpkg-deb --build deb_pkg "$(NAME)_$${FULL_VERSION}_$${ARCH}.deb"; \
 	echo "📦 Paquete generado: $(NAME)_$${FULL_VERSION}_$${ARCH}.deb"
 
 changelog-deb:
