@@ -30,7 +30,7 @@ jobs:
 
       - name: 🛠 Build Rust library
         working-directory: src/rust/curp-verifier
-        run: make all
+        run: make install-tools cbindgen
 
       - name: 📦 Build .deb package
         working-directory: src/rust/curp-verifier
@@ -104,21 +104,11 @@ jobs:
           targets: aarch64-unknown-linux-gnu
 
       - name: 🧰 Install cross-compiling tools
-        run: sudo apt update && sudo apt install -y dpkg-dev gcc-aarch64-linux-gnu lintian
-
-      - name: 🛠 Build Rust library for ARM64
-        working-directory: src/rust/curp-verifier
-        run: |
-          cargo build --release --target aarch64-unknown-linux-gnu
-          mkdir -p target/release
-          cp target/aarch64-unknown-linux-gnu/release/libcurp_verifier.* target/release/
-
-      - name: 📥 Install cbindgen
-        run: cargo install cbindgen
+        run: sudo apt update && sudo apt install -y dpkg-dev gcc-aarch64-linux-gnu libc6-dev-arm64-cross lintian
 
       - name: 🧾 Generate header
         working-directory: src/rust/curp-verifier
-        run: make cbindgen
+        run: make install-tools cbindgen
 
       - name: 📦 Build .deb package for ARM64
         working-directory: src/rust/curp-verifier
