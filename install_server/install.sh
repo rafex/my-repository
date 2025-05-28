@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")/.."; pwd)"
@@ -81,7 +81,8 @@ enable_report_auth() {
   HTPASSWD_FILE="/srv/repo/.htpasswd"
 
   echo "🔐 Configurando usuario y contraseña para el informe."
-  read -p "Introduce el nombre de usuario para el informe: " REPORT_USER
+  printf "Introduce el nombre de usuario para el informe: "
+  read REPORT_USER
 
   echo "Configurando archivo de contraseñas en $HTPASSWD_FILE"
   sudo htpasswd -c -i "$HTPASSWD_FILE" "$REPORT_USER"
@@ -91,10 +92,17 @@ enable_report_auth() {
 
 # Ejecuta goaccess en segundo plano y genera reporte HTML
 run_report() {
-  echo "🏃 Ejecutando goaccess en segundo plano. Presiona Ctrl+C para detener."
-  sudo goaccess /var/log/nginx/access.log --log-format=COMBINED --real-time-html --addr=0.0.0.0 -o "$REPORT_HTML" &
-  GOACCESS_PID=$!
-  echo "Goaccess PID: $GOACCESS_PID"
+  echo "🏃 Iniciando goaccess como daemon en segundo plano..."
+  PID_FILE="/var/run/goaccess.pid"
+  sudo goaccess /var/log/nginx/access.log \
+    --log-format=COMBINED \
+    --real-time-html \
+    --daemon \
+    --pid-file="$PID_FILE" \
+    --addr=0.0.0.0 \
+    -o "$REPORT_HTML"
+  GOACCESS_PID=$(sudo cat "$PID_FILE")
+  echo "Goaccess daemon inició con PID: $GOACCESS_PID"
 }
 
 # Limpieza de archivos al terminar
@@ -219,7 +227,6 @@ case "$1" in
     enable_report_auth
     trap cleanup_report INT
     run_report
-    wait $GOACCESS_PID
     ;;
   --reindex|-R)
     generate_indexes
