@@ -5,6 +5,13 @@ Este proyecto lo realicé para tener disponible en repositorios programas y util
 El código fuente es público y está disponible en el repositorio:  
 👉 [https://github.com/rafex/my-repository](https://github.com/rafex/my-repository)
 
+## Índice de paquetes (A - Z)
+
+- G: [curp-generator](https://github.com/rafex/curp-generator)
+- V: [curp-verifier](https://github.com/rafex/curp-verifier)
+
+Visita mi blog: [theworldofrafex.blog](https://theworldofrafex.blog/)
+
 ## Licencia
 
 Este repositorio está cubierto por una licencia de código abierto. Consulta el archivo [LICENSE](./LICENSE) para más detalles.  
@@ -29,5 +36,5 @@ Para información general sobre licencias de código abierto, puedes consultar:
 ```bash
 curl -fsSL https://repository.rafex.app/pubkey.asc | sudo gpg --dearmor -o /usr/share/keyrings/rafex-archive-keyring.gpg echo "deb [signed-by=/usr/share/keyrings/rafex-archive-keyring.gpg] https://repository.rafex.app/debian stable main" | sudo tee /etc/apt/sources.list.d/rafex.list > /dev/null
 sudo apt update
-sudo apt install curp-verifier
+sudo apt install libcurp-verifier0
 ```
