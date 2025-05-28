@@ -35,7 +35,7 @@ jobs:
           make changelog-deb ARCH=amd64
           make package-deb ARCH=amd64
           ls -lah
-          cp libcurp-verifier_*_amd64.deb $GITHUB_WORKSPACE/
+          cp libcurp-verifier*_amd64.deb $GITHUB_WORKSPACE/
 
       - name: 🔍 Lint package with lintian
         working-directory: src/rust/curp_verifier
@@ -62,7 +62,7 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
           chmod 600 id_github_gactions
-          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./libcurp-verifier_*_amd64.deb ./libcurp-verifier_*_amd64.deb.sig ./libcurp-verifier_*_amd64.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-amd64/
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./libcurp-verifier*_amd64.deb ./libcurp-verifier*_amd64.deb.sig ./libcurp-verifier*_amd64.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-amd64/
 
       - name: 🔄 Regenerate Packages.gz using ssh
         run: |
@@ -120,7 +120,7 @@ jobs:
           make changelog-deb ARCH=arm64
           make package-deb ARCH=arm64
           ls -lah
-          cp libcurp-verifier_*_arm64.deb $GITHUB_WORKSPACE/
+          cp libcurp-verifier*_arm64.deb $GITHUB_WORKSPACE/
 
       - name: 🔍 Lint package with lintian
         working-directory: src/rust/curp_verifier
@@ -145,7 +145,7 @@ jobs:
         run: |
           echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
           chmod 600 id_github_gactions
-          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./libcurp-verifier_*_arm64.deb ./libcurp-verifier_*_arm64.deb.sig ./libcurp-verifier_*_arm64.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-arm64/
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./libcurp-verifier*_arm64.deb ./libcurp-verifier*_arm64.deb.sig ./libcurp-verifier*_arm64.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-arm64/
 
       - name: 🔄 Regenerate Packages.gz using ssh
         run: |
