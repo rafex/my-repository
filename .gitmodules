@@ -1,3 +1,6 @@
 [submodule "src/rust/curp-verifier"]
 	path = src/rust/curp-verifier
 	url = git@github.com:rafex/curp-verifier.git
+[submodule "src/rust/curp-generator"]
+	path = src/rust/curp-generator
+	url = git@github.com:rafex/curp-generator.git
