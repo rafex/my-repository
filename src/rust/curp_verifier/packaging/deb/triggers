@@ -1,4 +1,3 @@
 interest ldconfig
 interest /etc/ld.so.conf.d
-interest /usr/lib
 activate /usr/lib

@@ -75,7 +75,7 @@ package-deb:
 	gzip -9 -c packaging/deb/$(ARCH)/changelog > deb_pkg/usr/share/doc/$(NAME)/changelog.Debian.gz
 	cp packaging/deb/copyright deb_pkg/usr/share/doc/$(NAME)/copyright
 	cp packaging/deb/post* deb_pkg/DEBIAN/.
-	cp packaging/deb/triggers deb_pkg/DEBIAN/triggers
+	cp packaging/deb/triggers deb_pkg/DEBIAN/triggers;
 	cp packaging/deb/shlibs deb_pkg/DEBIAN/shlibs
 	chmod 0644 deb_pkg/usr/lib/$(LIB_CURP_VERSION)
 
@@ -95,7 +95,6 @@ package-deb:
 	        s|{{SUMMARY}}|Validador CURP|g; \
 	        s|{{DESCRIPTION}}|Verificar CURP conforme al instructivo oficial del RENAPO.|g" $$FINAL; \
 	cp $$FINAL deb_pkg/DEBIAN/control; \
-	echo "Triggers: interest /usr/lib" >> deb_pkg/DEBIAN/control; \
 	echo "📄 Control final generado:" && cat $$FINAL; \
 	SIZE=$$(du -ks deb_pkg/usr | cut -f1); \
 	echo "Installed-Size: $$SIZE" >> deb_pkg/DEBIAN/control; \
