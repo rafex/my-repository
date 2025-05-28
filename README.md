@@ -7,8 +7,8 @@ El código fuente es público y está disponible en el repositorio:
 
 ## Índice de paquetes (A - Z)
 
-- G: [curp-generator](https://github.com/rafex/curp-generator)
-- V: [curp-verifier](https://github.com/rafex/curp-verifier)
+- C: [curp-generator](https://github.com/rafex/curp-generator)
+- C: [curp-verifier](https://github.com/rafex/curp-verifier)
 
 Visita mi blog: [theworldofrafex.blog](https://theworldofrafex.blog/)
 
