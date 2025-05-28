@@ -66,7 +66,7 @@ package-deb:
 
 	@VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
 	FULL_VERSION=$${VERSION}-$(REVISION); \
-	DEPENDS=$$(dpkg-shlibdeps deb_pkg/usr/lib/lib$(CRATE).so 2>/dev/null | sed -n 's/^shlibs:Depends=//p'); \
+	DEPENDS=$$(ldd deb_pkg/usr/lib/lib$(CRATE).so | awk '{ if ($$3 ~ /^\//) print $$1 }' | xargs -r dpkg -S | cut -d: -f1 | sort -u | paste -sd "," -); \
 	FINAL=packaging/deb/$(ARCH)/control; \
 	cp $(TEMPLATE) $$FINAL; \
 	sed -i "s|{{PACKAGE}}|$(NAME)|g; \
