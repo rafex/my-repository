@@ -46,11 +46,12 @@ package-deb:
 	fi
 	@echo "📦 Empaquetando para arquitectura: $(ARCH)"
 	mkdir -p deb_pkg/usr/lib
+	chown -R 0:0 deb_pkg
 	@if [ "$(ARCH)" = "arm64" ]; then \
-		cargo build --release --target aarch64-unknown-linux-gnu; \
+		RUSTFLAGS="-C link-arg=-Wl,-soname,libcurp_verifier.so" cargo build --release --target aarch64-unknown-linux-gnu; \
 		cp target/aarch64-unknown-linux-gnu/release/lib$(CRATE).$(EXT) deb_pkg/usr/lib/; \
 	else \
-		cargo build --release; \
+		RUSTFLAGS="-C link-arg=-Wl,-soname,libcurp_verifier.so" cargo build --release; \
 		cp $(TARGET) deb_pkg/usr/lib/; \
 	fi
 
@@ -58,11 +59,11 @@ package-deb:
 	mkdir -p deb_pkg/DEBIAN
 	cp $(HEADER) deb_pkg/usr/include/
 	mkdir -p packaging/deb/$(ARCH)
-
+	strip deb_pkg/usr/lib/lib$(CRATE).so
 	mkdir -p deb_pkg/usr/share/doc/$(NAME)
 	gzip -c README.md > deb_pkg/usr/share/doc/$(NAME)/README.md.gz
-	cp packaging/deb/$(ARCH)/changelog deb_pkg/usr/share/doc/$(NAME)/changelog
 	gzip -c packaging/deb/$(ARCH)/changelog > deb_pkg/usr/share/doc/$(NAME)/changelog.Debian.gz
+	cp LICENSE deb_pkg/usr/share/doc/$(NAME)/copyright
 
 	@VERSION=$$(grep "^version" Cargo.toml | head -n1 | cut -d'"' -f2); \
 	FULL_VERSION=$${VERSION}-$(REVISION); \
@@ -77,8 +78,8 @@ package-deb:
 	        s|{{SECTION}}|libs|g; \
 	        s|{{RUNTIME_DEPENDENCIES}}|$$DEPENDS|g; \
 	        s|{{HOMEPAGE}}|https://github.com/rafex/my-repository/tree/main/src/rust/$(CRATE)|g; \
-	        s|{{SUMMARY}}|Biblioteca Rust para validar CURP|g; \
-	        s|{{DESCRIPTION}}|Biblioteca ligera desarrollada en Rust para verificar CURP conforme al instructivo oficial del RENAPO.|g" $$FINAL; \
+	        s|{{SUMMARY}}|Validador CURP|g; \
+	        s|{{DESCRIPTION}}|Verificar CURP conforme al instructivo oficial del RENAPO.|g" $$FINAL; \
 	cp $$FINAL deb_pkg/DEBIAN/control; \
 	echo "📄 Control final generado:" && cat $$FINAL; \
 	SIZE=$$(du -ks deb_pkg/usr | cut -f1); \
