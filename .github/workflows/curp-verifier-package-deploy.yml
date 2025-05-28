@@ -4,16 +4,16 @@ on:
   push:
     branches: [ main ]
     paths:
-      - "src/rust/curp_verifier/**"
-      - "src/rust/curp_verifier/packaging/deb/amd64/**"
-      - "src/rust/curp_verifier/packaging/deb/arm64/**"
+      - "src/rust/curp-verifier/**"
+      - "src/rust/curp-verifier/packaging/deb/amd64/**"
+      - "src/rust/curp-verifier/packaging/deb/arm64/**"
       - ".github/workflows/curp-verifier-package-deploy.yml"
   workflow_dispatch:
 
 jobs:
   build-and-deploy-amd64:
     runs-on: ubuntu-latest
-    # if: contains(github.event.head_commit.message, 'amd64') || contains(join(github.event.commits.*.modified, ','), 'src/rust/curp_verifier/packaging/deb/amd64/')
+    # if: contains(github.event.head_commit.message, 'amd64') || contains(join(github.event.commits.*.modified, ','), 'src/rust/curp-verifier/packaging/deb/amd64/')
 
     steps:
       - name: 🧾 Checkout repo
@@ -29,11 +29,11 @@ jobs:
         run: sudo apt update && sudo apt install -y dpkg-dev lintian
 
       - name: 🛠 Build Rust library
-        working-directory: src/rust/curp_verifier
+        working-directory: src/rust/curp-verifier
         run: make all
 
       - name: 📦 Build .deb package
-        working-directory: src/rust/curp_verifier
+        working-directory: src/rust/curp-verifier
         run: |
           make changelog-deb ARCH=amd64
           make package-deb ARCH=amd64
@@ -41,7 +41,7 @@ jobs:
           cp libcurp-verifier*_amd64.deb $GITHUB_WORKSPACE/
 
       - name: 🔍 Lint package with lintian
-        working-directory: src/rust/curp_verifier
+        working-directory: src/rust/curp-verifier
         run: |
           ls -la
           make lint ARCH=amd64
@@ -89,7 +89,7 @@ jobs:
 
   build-and-deploy-arm64:
     runs-on: ubuntu-latest
-    # if: contains(github.event.head_commit.message, 'arm64') || contains(join(github.event.commits.*.modified, ','), 'src/rust/curp_verifier/packaging/deb/arm64/')
+    # if: contains(github.event.head_commit.message, 'arm64') || contains(join(github.event.commits.*.modified, ','), 'src/rust/curp-verifier/packaging/deb/arm64/')
 
     steps:
       - name: 🧾 Checkout repo
@@ -107,7 +107,7 @@ jobs:
         run: sudo apt update && sudo apt install -y dpkg-dev gcc-aarch64-linux-gnu lintian
 
       - name: 🛠 Build Rust library for ARM64
-        working-directory: src/rust/curp_verifier
+        working-directory: src/rust/curp-verifier
         run: |
           cargo build --release --target aarch64-unknown-linux-gnu
           mkdir -p target/release
@@ -117,11 +117,11 @@ jobs:
         run: cargo install cbindgen
 
       - name: 🧾 Generate header
-        working-directory: src/rust/curp_verifier
+        working-directory: src/rust/curp-verifier
         run: make cbindgen
 
       - name: 📦 Build .deb package for ARM64
-        working-directory: src/rust/curp_verifier
+        working-directory: src/rust/curp-verifier
         run: |
           make changelog-deb ARCH=arm64
           make package-deb ARCH=arm64
@@ -129,7 +129,7 @@ jobs:
           cp libcurp-verifier*_arm64.deb $GITHUB_WORKSPACE/
 
       - name: 🔍 Lint package with lintian
-        working-directory: src/rust/curp_verifier
+        working-directory: src/rust/curp-verifier
         run: make lint ARCH=arm64
 
       - name: 🧮 Generate SHA256 checksum
