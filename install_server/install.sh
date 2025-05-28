@@ -1,6 +1,9 @@
 #!/bin/sh
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")/.."; pwd)"
+README_FILE="$SCRIPT_DIR/README.md"
+
 CERT_DIR="/etc/letsencrypt/live/repository.rafex.app"
 NGINX_CONF="/etc/nginx/sites-available/repo"
 
@@ -32,7 +35,7 @@ init_server() {
   sudo mkdir -p /srv/repo/debian/dists/stable/main/binary-amd64
   sudo mkdir -p /srv/repo/debian/dists/stable/main/binary-arm64
   sudo mkdir -p /srv/repo/redhat
-  sudo chown -R "$USER:www-data" /srv/repo
+  sudo chown -R "${SUDO_USER:-$USER}:www-data" /srv/repo
 
   sudo chmod -R 775 /srv/repo/debian/dists/stable/main/binary-amd64
   sudo chmod -R 775 /srv/repo/debian/dists/stable/main/binary-arm64
@@ -60,10 +63,10 @@ EOF
 
   echo "📄 Generando index.html a partir de README.md..."
   if command -v markdown >/dev/null 2>&1; then
-    markdown /opt/src/my-repository/README.md > /srv/repo/index.html
+    markdown "$README_FILE" > /srv/repo/index.html
   else
     echo "<pre>" > /srv/repo/index.html
-    cat /opt/src/my-repository/README.md >> /srv/repo/index.html
+    cat "$README_FILE" >> /srv/repo/index.html
     echo "</pre>" >> /srv/repo/index.html
   fi
   echo "✅ Archivo index.html generado en /srv/repo/"
@@ -80,35 +83,9 @@ enable_report_auth() {
   echo "🔐 Configurando usuario y contraseña para el informe."
   read -p "Introduce el nombre de usuario para el informe: " REPORT_USER
 
-  cat << 'USAGE'
-Usage:
-        htpasswd [-cimB25dpsDv] [-C cost] [-r rounds] passwordfile username
-        htpasswd -b[cmB25dpsDv] [-C cost] [-r rounds] passwordfile username password
-
-        htpasswd -n[imB25dps] [-C cost] [-r rounds] username
-        htpasswd -nb[mB25dps] [-C cost] [-r rounds] username password
- -c  Create a new file.
- -n  Don't update file; display results on stdout.
- -b  Use the password from the command line rather than prompting for it.
- -i  Read password from stdin without verification (for script usage).
- -m  Force MD5 hashing of the password (default).
- -2  Force SHA-256 hashing of the password (secure).
- -5  Force SHA-512 hashing of the password (secure).
- -B  Force bcrypt hashing of the password (very secure).
- -C  Set the computing time used for the bcrypt algorithm
-     (higher is more secure but slower, default: 5, valid: 4 to 17).
- -r  Set the number of rounds used for the SHA-256, SHA-512 algorithms
-     (higher is more secure but slower, default: 5000).
- -d  Force CRYPT hashing of the password (8 chars max, insecure).
- -s  Force SHA-1 hashing of the password (insecure).
- -p  Do not hash the password (plaintext, insecure).
- -D  Delete the specified user.
- -v  Verify password for the specified user.
-USAGE
-
   echo "Configurando archivo de contraseñas en $HTPASSWD_FILE"
   sudo htpasswd -c -i "$HTPASSWD_FILE" "$REPORT_USER"
-  sudo chown "$USER:www-data" "$HTPASSWD_FILE"
+  sudo chown "${SUDO_USER:-$USER}:www-data" "$HTPASSWD_FILE"
   sudo chmod 640 "$HTPASSWD_FILE"
 }
 
@@ -123,6 +100,9 @@ run_report() {
 # Limpieza de archivos al terminar
 cleanup_report() {
   echo "🗑️ Eliminando archivo de informe ($REPORT_HTML) y archivo de contraseña ($HTPASSWD_FILE)..."
+  if [ -n "$GOACCESS_PID" ]; then
+      sudo kill "$GOACCESS_PID"
+  fi
   sudo rm -f "$REPORT_HTML" "$HTPASSWD_FILE"
   echo "✅ Limpieza completa."
   exit 0
@@ -138,7 +118,7 @@ install_markdown_index() {
   echo "📄 Generando index.html a partir de README.md..."
   echo '<!DOCTYPE html>' > /srv/repo/index.html
   echo '<html lang="es"><head><meta charset="UTF-8"><title>Repositorio de Rafex</title></head><body>' >> /srv/repo/index.html
-  markdown /opt/src/my-repository/README.md >> /srv/repo/index.html
+  markdown "$README_FILE" >> /srv/repo/index.html
   echo '</body></html>' >> /srv/repo/index.html
   echo "✅ Archivo index.html generado con 'markdown'."
 }
