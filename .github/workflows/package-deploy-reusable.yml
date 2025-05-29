@@ -1,0 +1,124 @@
+# This is a reusable workflow for building and deploying Debian packages
+# for Rust crates under src/rust/<crate>.
+
+name: "Reusable Debian Package Deploy"
+
+on:
+  workflow_call:
+    inputs:
+      crate_dir:
+        description: 'Path to the Rust crate directory'
+        required: true
+        type: string
+      lib_prefix:
+        description: 'Library filename prefix (e.g. libcurp-generator)'
+        required: true
+        type: string
+    secrets:
+      RAFEX_GPG_PRIVATE_KEY:
+        required: true
+      RAFEX_SERVER_SSH_KEY:
+        required: true
+      RAFEX_SERVER_USER:
+        required: true
+      RAFEX_SERVER_HOST:
+        required: true
+      RAFEX_RELEASE_CONF:
+        required: true
+      RAFEX_GPG_KEY:
+        required: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+    steps:
+      - name: 🧾 Checkout repo
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: 🦀 Install Rust for amd64
+        if: matrix.arch == 'amd64'
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 🦀 Install Rust for arm64
+        if: matrix.arch == 'arm64'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu
+      
+      - name: 🔧 Install dependencies
+        run: |
+          sudo apt update
+          if [[ "${{ matrix.arch }}" == "amd64" ]]; then
+            sudo apt install -y dpkg-dev lintian
+          else
+            sudo apt install -y dpkg-dev gcc-aarch64-linux-gnu libc6-dev-arm64-cross lintian
+          fi
+
+      - name: 🛠 Build Rust library
+        working-directory: ${{ inputs.crate_dir }}
+        run: make install-tools cbindgen
+
+      - name: 📦 Build .deb package for ${{ matrix.arch }}
+        working-directory: ${{ inputs.crate_dir }}
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          make changelog-deb ARCH=${{ matrix.arch }}
+          make package-deb ARCH=${{ matrix.arch }}
+          ls -lah
+          cp ${{ inputs.lib_prefix }}*_${{ matrix.arch }}.deb $GITHUB_WORKSPACE/
+
+      - name: 🔍 Lint package with lintian
+        working-directory: ${{ inputs.crate_dir }}
+        run: make lint ARCH=${{ matrix.arch }}
+
+      - name: 🧮 Generate SHA256 checksum
+        run: |
+          for deb in ${{ inputs.lib_prefix }}*.deb; do
+            sha256sum "$deb" > "$deb.sha256"
+          done
+
+      - name: 🔏 Sign .deb package
+        run: |
+          echo "${{ secrets.RAFEX_GPG_PRIVATE_KEY }}" | base64 -d > private.key.asc
+          gpg --batch --import private.key.asc
+          for deb in ${{ inputs.lib_prefix }}*.deb; do
+            gpg --output "$deb.sig" --detach-sign --armor "$deb"
+          done
+
+      - name: 🛡 Preparar clave SSH
+        id: prepare_ssh
+        run: |
+          echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
+          chmod 600 id_github_gactions
+
+      - name: 🚀 Upload to server using scp for ${{ matrix.arch }}
+        run: |
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./*_${{ matrix.arch }}.deb ./*_${{ matrix.arch }}.deb.sig ./*_${{ matrix.arch }}.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-${{ matrix.arch }}/
+
+      - name: 🔄 Regenerate Packages.gz on server for ${{ matrix.arch }}
+        run: |
+          ssh -i id_github_gactions -o StrictHostKeyChecking=no ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }} \
+            "bash -c 'cd /srv/repo/debian && \
+            apt-ftparchive packages dists/stable/main/binary-${{ matrix.arch }} > dists/stable/main/binary-${{ matrix.arch }}/Packages && \
+            gzip -9c dists/stable/main/binary-${{ matrix.arch }}/Packages > dists/stable/main/binary-${{ matrix.arch }}/Packages.gz'"
+
+      - name: 🔏 Sign Release on server
+        run: |
+          ssh -i id_github_gactions -o StrictHostKeyChecking=no ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }} \
+            "bash -c 'cd /srv/repo/debian && \
+            rm -f dists/stable/Release dists/stable/Release.gpg dists/stable/InRelease && \
+            apt-ftparchive -c ${{ secrets.RAFEX_RELEASE_CONF }} release dists/stable > dists/stable/Release && \
+            gpg --batch --yes --default-key ${{ secrets.RAFEX_GPG_KEY }} -abs -o dists/stable/Release.gpg dists/stable/Release && \
+            gpg --batch --yes --default-key ${{ secrets.RAFEX_GPG_KEY }} --clearsign -o dists/stable/InRelease dists/stable/Release'"
+      
+      - name: 🧹 Cleanup
+        run: |
+          rm -f private.key.asc id_github_gactions
+          echo "Cleanup completed."

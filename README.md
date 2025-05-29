@@ -36,5 +36,5 @@ Para información general sobre licencias de código abierto, puedes consultar:
 ```bash
 curl -fsSL https://repository.rafex.app/pubkey.asc | sudo gpg --dearmor -o /usr/share/keyrings/rafex-archive-keyring.gpg echo "deb [signed-by=/usr/share/keyrings/rafex-archive-keyring.gpg] https://repository.rafex.app/debian stable main" | sudo tee /etc/apt/sources.list.d/rafex.list > /dev/null
 sudo apt update
-sudo apt install libcurp-verifier0
+sudo apt install libcurp-verifier0 libcurp-generator0
 ```
