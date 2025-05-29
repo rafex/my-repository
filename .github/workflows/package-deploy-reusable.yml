@@ -41,19 +41,24 @@ jobs:
           submodules: true
           fetch-depth: 0
 
-      - name: 🦀 Install Rust
+      - name: 🦀 Install Rust for amd64
+        if: matrix.arch == 'amd64'
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 🦀 Install Rust for arm64
+        if: matrix.arch == 'arm64'
         uses: dtolnay/rust-toolchain@stable
         with:
-          # For ARM64 include the target
-          targets: ${{ matrix.arch == 'arm64' && 'aarch64-unknown-linux-gnu' }}
-
-      - name: 📦 Install packaging tools
-        if: matrix.arch == 'amd64'
-        run: sudo apt update && sudo apt install -y dpkg-dev lintian
-
-      - name: 🧰 Install cross-compiling tools
-        if: matrix.arch == 'arm64'
-        run: sudo apt update && sudo apt install -y dpkg-dev gcc-aarch64-linux-gnu libc6-dev-arm64-cross lintian
+          targets: aarch64-unknown-linux-gnu
+      
+      - name: 🔧 Install dependencies
+        run: |
+          sudo apt update
+          if [[ "${{ matrix.arch }}" == "amd64" ]]; then
+            sudo apt install -y dpkg-dev lintian
+          else
+            sudo apt install -y dpkg-dev gcc-aarch64-linux-gnu libc6-dev-arm64-cross lintian
+          fi
 
       - name: 🛠 Build Rust library
         working-directory: ${{ inputs.crate_dir }}
@@ -87,16 +92,18 @@ jobs:
             gpg --output "$deb.sig" --detach-sign --armor "$deb"
           done
 
-      - name: 🚀 Upload to server using scp for ${{ matrix.arch }}
+      - name: 🛡 Preparar clave SSH
+        id: prepare_ssh
         run: |
           echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
           chmod 600 id_github_gactions
+
+      - name: 🚀 Upload to server using scp for ${{ matrix.arch }}
+        run: |
           scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_github_gactions ./*_${{ matrix.arch }}.deb ./*_${{ matrix.arch }}.deb.sig ./*_${{ matrix.arch }}.deb.sha256 ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }}:/srv/repo/debian/dists/stable/main/binary-${{ matrix.arch }}/
 
       - name: 🔄 Regenerate Packages.gz on server for ${{ matrix.arch }}
         run: |
-          echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
-          chmod 600 id_github_gactions
           ssh -i id_github_gactions -o StrictHostKeyChecking=no ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }} \
             "bash -c 'cd /srv/repo/debian && \
             apt-ftparchive packages dists/stable/main/binary-${{ matrix.arch }} > dists/stable/main/binary-${{ matrix.arch }}/Packages && \
@@ -104,11 +111,14 @@ jobs:
 
       - name: 🔏 Sign Release on server
         run: |
-          echo "${{ secrets.RAFEX_SERVER_SSH_KEY }}" > id_github_gactions
-          chmod 600 id_github_gactions
           ssh -i id_github_gactions -o StrictHostKeyChecking=no ${{ secrets.RAFEX_SERVER_USER }}@${{ secrets.RAFEX_SERVER_HOST }} \
             "bash -c 'cd /srv/repo/debian && \
             rm -f dists/stable/Release dists/stable/Release.gpg dists/stable/InRelease && \
             apt-ftparchive -c ${{ secrets.RAFEX_RELEASE_CONF }} release dists/stable > dists/stable/Release && \
             gpg --batch --yes --default-key ${{ secrets.RAFEX_GPG_KEY }} -abs -o dists/stable/Release.gpg dists/stable/Release && \
             gpg --batch --yes --default-key ${{ secrets.RAFEX_GPG_KEY }} --clearsign -o dists/stable/InRelease dists/stable/Release'"
+      
+      - name: 🧹 Cleanup
+        run: |
+          rm -f private.key.asc id_github_gactions
+          echo "Cleanup completed."
