@@ -30,4 +30,28 @@ Este proyecto sigue un entorno de colaboración respetuoso. No se tolerará cont
 
 ---
 
+## Flujo de trabajo
+
+Este proyecto utiliza **Gitflow** como modelo de gestión de ramas. Las ramas principales son:
+
+- `main`: código de producción.
+- `develop`: integración de nuevas funcionalidades.
+- `feature/...`: desarrollo de nuevas características.
+- `release/...`: preparación de versiones.
+- `hotfix/...`: corrección de errores en producción.
+
+Además, se utiliza un sistema de etiquetas (*tags*) para versionado, siguiendo [Semantic Versioning (SemVer)](https://semver.org/). Cada versión se etiqueta como `vX.Y.Z` (por ejemplo, `v1.2.0`).
+
+```
+               Gitflow
+╔══════════╗     ╔══════════╗
+║  Feature ║───▶║  Develop ║
+╚══════════╝    ╱╚══════════╝
+               ╱     │
+╔══════════╗   ╱     ▼
+║  Hotfix  ║◀─┘   ╔══════╗    ╔══════╗
+╚══════════╝      ║ Main ║-──▶║ Tags ║
+                  ╚══════╝    ╚══════╝
+```
+
 Si tienes dudas, abre un Issue o escribe al mantenedor del proyecto.
